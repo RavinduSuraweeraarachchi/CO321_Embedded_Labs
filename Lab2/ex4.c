@@ -78,6 +78,13 @@ ISR(INT0_vect)
 
     _delay_ms(500); // Wait for 500ms
 
+    // Wait for the button to be released
+    while (PIND & (1 << PD2))
+    {
+        // Do nothing, just wait
+        // This is a busy wait
+    }
+
     // Increment the i variable
     i++;
     
@@ -86,13 +93,6 @@ ISR(INT0_vect)
     if (i>=6)
     {
         i = 0; // Reset i to 0
-    }
-
-    // Wait for the button to be released
-    while (PIND & (1 << PD2))
-    {
-        // Do nothing, just wait
-        // This is a busy wait
     }
 }
 
@@ -104,9 +104,16 @@ ISR(INT1_vect)
 
     _delay_ms(500); // Wait for a short time`
     
+    
+    // Wait for the button to be released
+    while (PIND & (1 << PD3))
+    {
+        // Do nothing, just wait
+        // This is a busy wait
+    }
+    
     // Increment the i variable
     i++;
-    
 
     // If i reaches 6, we need to reset it
     if (i>=6)
@@ -114,10 +121,4 @@ ISR(INT1_vect)
         i = 0; // Reset i to 0
     }
 
-    // Wait for the button to be released
-    while (PIND & (1 << PD3))
-    {
-        // Do nothing, just wait
-        // This is a busy wait
-    }
 }

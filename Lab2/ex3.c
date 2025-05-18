@@ -47,7 +47,18 @@ int main()
     // Now we can enter an infinite loop
     while (1)
     {
-        // Do nothing, just wait for the interrupt to be triggered
+        // We can disable the interrupt for a short time
+        // When we detect the button press
+        // This is to avoid multiple counts for a single press
+        // We can do that by checking the PD2 pin
+        // And make sure it is not pressed
+        // if (PIND & (1 << PD2))
+        // {
+        //     EIMSK &= ~(1 << INT0); // Disable the interrupt
+        //     _delay_ms(500); // Wait for a short time
+        //     EIMSK |= (1 << INT0); // Enable the interrupt
+        // }
+        
     }
 
     return 0;
@@ -58,18 +69,25 @@ int main()
 
 ISR (INT0_vect)
 {
+    // Add small delay
+    _delay_ms(50); 
+
     // Increment the counter
     PORTB += 0b1; // Increment the counter by 1
-    _delay_ms(500); 
+    _delay_ms(250); 
 
     // Wait for the button to be released
     // We can do that by checking the PD2 pin
     // And make sure it is not pressed
+    
     while (PIND & (1 << PD2))
     {
+        
+        EIMSK &= ~(1 << INT0); // Disable the interrupt
+        _delay_ms(200); // Wait for a short time
+        EIMSK |= (1 << INT0); // Enable the interrupt
         // Do nothing, just wait
         // This is a busy wait
         // This is to avoid multiple counts for a single press
-        _delay_ms(100);
     }
 }
