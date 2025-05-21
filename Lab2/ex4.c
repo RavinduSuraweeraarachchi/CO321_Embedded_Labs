@@ -78,13 +78,6 @@ ISR(INT0_vect)
 
     _delay_ms(500); // Wait for 500ms
 
-    // Wait for the button to be released
-    while (PIND & (1 << PD2))
-    {
-        // Do nothing, just wait
-        // This is a busy wait
-    }
-
     // Increment the i variable
     i++;
     
@@ -103,14 +96,6 @@ ISR(INT1_vect)
     PORTB |= (1 << i); // Set the bit i to 1
 
     _delay_ms(500); // Wait for a short time`
-    
-    
-    // Wait for the button to be released
-    while (PIND & (1 << PD3))
-    {
-        // Do nothing, just wait
-        // This is a busy wait
-    }
     
     // Increment the i variable
     i++;

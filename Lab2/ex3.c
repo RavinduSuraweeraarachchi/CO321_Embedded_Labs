@@ -47,17 +47,6 @@ int main()
     // Now we can enter an infinite loop
     while (1)
     {
-        // We can disable the interrupt for a short time
-        // When we detect the button press
-        // This is to avoid multiple counts for a single press
-        // We can do that by checking the PD2 pin
-        // And make sure it is not pressed
-        // if (PIND & (1 << PD2))
-        // {
-        //     EIMSK &= ~(1 << INT0); // Disable the interrupt
-        //     _delay_ms(500); // Wait for a short time
-        //     EIMSK |= (1 << INT0); // Enable the interrupt
-        // }
         
     }
 
@@ -69,6 +58,7 @@ int main()
 
 ISR (INT0_vect)
 {
+
     // Add small delay
     _delay_ms(50); 
 
@@ -76,15 +66,33 @@ ISR (INT0_vect)
     PORTB += 0b1; // Increment the counter by 1
     _delay_ms(250); 
 
+    // Check if the button is still pressed
+    // The logic is for an Active LOW button
+    // i.e. when the button is pressed, the pin is LOW
+    if (!PIND & (1 << PD2))
+    {
+        // Now we need to avoid debouncing 
+        EIMSK &= ~(1 << INT0); // Disable the interrupt
+        // when releasing the button
+        // Check whether the button is now released
+        if (PIND & (1 << PD2))
+        {
+            // Disable the interrupt for a short time
+            EIMSK &= ~(1 << INT0); // Disable the interrupt
+            _delay_ms(200); // Wait for a short time
+        }
+    }
+
     // Wait for the button to be released
     // We can do that by checking the PD2 pin
     // And make sure it is not pressed
+
     
     while (PIND & (1 << PD2))
     {
         
         EIMSK &= ~(1 << INT0); // Disable the interrupt
-        _delay_ms(200); // Wait for a short time
+        _delay_ms(50); // Wait for a short time
         EIMSK |= (1 << INT0); // Enable the interrupt
         // Do nothing, just wait
         // This is a busy wait
