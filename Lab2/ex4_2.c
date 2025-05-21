@@ -41,7 +41,7 @@ void handle_button(uint8_t bit_value)
     EIMSK &= ~((1 << INT0) | (1 << INT1));
     
     // Debounce delay
-    _delay_ms(20);
+    _delay_ms(100);
     
     // Verify button is still pressed (active low)
     if ((bit_value == 0 && !(PIND & (1 << PD2))) || 
@@ -58,10 +58,10 @@ void handle_button(uint8_t bit_value)
         current_bit = (current_bit + 1) % 6;
         
         // Wait for button release
-        while ((bit_value == 0 && !(PIND & (1 << PD2))) || 
-               (bit_value == 1 && !(PIND & (1 << PD3)))) {
-            _delay_ms(10);
-        }
+        // while ((bit_value == 0 && !(PIND & (1 << PD2))) || 
+        //        (bit_value == 1 && !(PIND & (1 << PD3)))) {
+        //     _delay_ms(10);
+        // }
     }
     
     // Re-enable interrupts
