@@ -39,110 +39,109 @@ i.e.
 
 /////////////////////////////////////////////
 
-TIMER2 for 500 ms:
-
+TIMER1 for 500 ms:
 XTAL = 16 MHz
-// i.e. 1 clock cycle = 1 / 16 microseconds
-// Let us use the 1:256 Prescaler
+i.e. 1 clock cycle = 1 / 16 microseconds
+Let us use the 1:256 Prescaler
+// Period of counter clock = 1 / (16 MHz / 256) = 16 microseconds
+// # of counts needed for 500 ms = 500 ms / 16 microseconds = 31250 counts.
+// Since 31250 < 65536, we can use the 16-bit timer (TIMER1)
 
-Period of counter clock = 1 / (16 MHz / 256) = 16 microseconds
-# of counts needed for 500 ms = 500 ms / 16 microseconds = 31250 counts.
-# of full overflows = 31250 / 256 = 122 with a remainder
-# of Remaining Increments = 31250 - 122*256 = 18
-Initial counter value = 256 - 18 = 238
-
-i.e.
-    * Timer starts counting from 238
-    * Overflows after 18 counts
-    * After overflow, counts 122 more overflows
-    * Total Counts: 18 + 256*122 = 31250 counts
+In this case, we have decided to use the CTC mode of TIMER1
+CTC mode allows us to set a specific count value (OCR1A)
+At this OCR1A value, the timer will reset and trigger an interrupt
+We can set OCR1A TO 31249
 */
 
 // First, we need to include the necessary header files
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-// Let us define overflow count variables for both timers
-volatile uint8_t overflow_count_timer0 = 0; // For TIMER0
-volatile uint16_t overflow_count_timer2 = 0; // For TIMER2
+// Let us define the LED pins
+// We will use PB4 and PB5 for the two LEDs
+// Arduino Pins 12 and 13 correspond to PB4 and PB5 respectively
+#define LED1 PB4 
+#define LED2 PB5  
+
+// Let us define overflow count variables for TIMER0
+volatile uint8_t timer0_ovfs = 0;
 
 // Let us write the delay timer function for TIMER0 (50 ms)
-void delay_timer() 
-{
+void timers_init() {
+
     // First, we need to load the timer counter register with value 203
-    TCNT0 = 203; // Initial counter value
+    TCNT0 = 203;
 
     // We can now set the Timer Control Register (TCCR0A) to normal mode with a prescaler of 256
-    TCCR0A = 0x00; // Normal mode
-    TCCR0B = 0x04; // Prescaler of 256
+    TCCR0A = 0x00;        // Normal mode
+    TCCR0B = (1 << CS02); // Prescaler 256
 
     // We can enable the Timer Overflow Interrupt
-    TIMSK0 |= (1 << TOIE0); // Enable Timer Overflow Interrupt
+    TIMSK0 = (1 << TOIE0); // Overflow interrupt
 
-    // We need to load the timer counter register with value 238
-    TCNT2 = 238; // Initial counter value
+    // Now, we will set up TIMER1 for 500 ms using CTC mode
+    // We have both TCCR1A and TCCR1B for TIMER1
+    // TCCR1A is used for mode selection and TCCR1B for prescaler
+    TCCR1A = 0x00;        // Normal mode
+    TCCR1B = (1 << WGM12) | (1 << CS12); // CTC mode, prescaler 256
 
-    // We can now set the Timer Control Register (TCCR2A) to normal mode with a prescaler of 256
-    TCCR2A = 0x00; // Normal mode
-    TCCR2B = 0x04; // Prescaler of 256
+    // WGM12 is set for CTC mode, and CS12 sets the prescaler to 256
 
-    // We can enable the Timer Overflow Interrupt
-    TIMSK2 |= (1 << TOIE2); // Enable Timer Overflow Interrupt
+    // Since we are in CTC mode, we need to set the Output Compare Register (OCR1A)
+    OCR1A = 31249; // Set compare value for 500ms
 
-    // Enable global interrupts
-    sei();
+    // Finally, we enable the compare match interrupt for TIMER1
+    TIMSK1 = (1 << OCIE1A); // Compare match interrupt
 
+    sei(); // Enable global interrupts
 }
 
-// ISR for Timer0 Overflow
-ISR(TIMER0_OVF_vect) 
-{
-    static uint8_t ovf_count0 = 0;
-    TCNT0 = 203; // Reload the timer counter register
-    ovf_count0++;
-    if (ovf_count0 >= 12) {
-        PORTB ^= (1 << 4); // Toggle LED1
-        ovf_count0 = 0;
-        TCNT0 = 0x00; // Reload for next cycle
-    } else {
-        TCNT0 = 0x00;
+// The ISR for TIMER0 overflow
+ISR(TIMER0_OVF_vect) {
+
+    // This if statement is to check the initial 53 increments
+    // After the first 53 counts, we will start counting full overflows
+    if (timer0_ovfs == 0) {
+        // We make TCNT0 = 0 to start counting from 0
+        TCNT0 = 0;
+        timer0_ovfs++;
+    } 
+    
+    // Now we check for 11 overflows
+    else if (timer0_ovfs < 12) {
+        // Middle overflows (11 more)
+        timer0_ovfs++;
+    }
+    
+    // After 12 overflows, we toggle the LED and reset the counter
+    else {
+        // 12th overflow complete (53 + 256*12 = 3125 counts)
+        PORTB ^= (1 << LED1);
+        // Make TCNT0 = 203 to start counting again (Initial 53 increments)
+        TCNT0 = 203;
+        timer0_ovfs = 0;
     }
 }
 
-// ISR for Timer2 Overflow
-ISR(TIMER2_OVF_vect) 
-{
-    static uint16_t ovf_count2 = 0;
-    TCNT2 = 238; // Reload the timer counter register
-    ovf_count2++;
-    if (ovf_count2 >= 122) {
-        PORTB ^= (1 << 5); // Toggle LED2
-        ovf_count2 = 0;
-        TCNT2 = 0x00; // Reload for next cycle
-    } else {
-        TCNT2 = 0x00;
-    }
+// The ISR for TIMER1 compare match
+ISR(TIMER1_COMPA_vect) {
+    // No issue with this interrupt, we just toggle the LED
+    PORTB ^= (1 << LED2);
 }
 
-// Now we can define the main function to implement the toggle logic
-// Let us use Pins PB4 and PB5 for the two LEDs
+// Main function to initialize the LEDs and timers
+int main() {
 
-int main() 
-{
-    // Configure pin 4 of PORTB as output (Arduino pin 12 corresponds to PB4)
-    DDRB |= (1 << 4);
-    // Configure pin 5 of PORTB as output (Arduino pin 13 corresponds to PB5)
-    DDRB |= (1 << 5);
+    // Set the LED pins as output
+    DDRB |= (1 << LED1) | (1 << LED2);
 
-    // Clear PORTB to ensure both LEDs are off initially
-    PORTB &= ~((1 << 4) | (1 << 5)); // Ensure both LEDs are off initially
+    // Initially turn off the LEDs
+    PORTB &= ~((1 << LED1) | (1 << LED2));
 
-    delay_timer(); // Initialize the timers
-
-    while (1) 
-    {
-
+    // Run the timers initialization function
+    timers_init();
+    
+    while (1) {
+        // Main loop does nothing
     }
-
 }
-
