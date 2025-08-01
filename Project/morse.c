@@ -208,11 +208,26 @@ const char* morseCodeMap[] =
 #define LED_PIN  PB5 // Arduino Pin 13 (On-board LED)
 
 // Debug LEDs for decoder
+
+/*
+    In Decoder mode:
+    - LED_DOT_PIN is used for DOT
+    - LED_DASH_PIN is used for DASH
+    - LED_WORD_PIN is used for WORD (space between words)
+*/
+
 #define LED_DOT_PIN    PB2 // Arduino Pin 10
 #define LED_DASH_PIN   PB3 // Arduino Pin 11
 #define LED_WORD_PIN   PB4 // Arduino Pin 12
 
 // Additional LEDs for encoder
+
+/*
+    In Encoder mode:
+    - LED_LETTER_PIN is used to show the end of a letter/number
+    - LED_SENT_PIN is used to show the end of a sentence
+*/
+
 #define LED_LETTER_PIN PB2 // Arduino Pin 10 (same as DOT for shared usage)
 #define LED_SENT_PIN   PB4 // Arduino Pin 12 (same as WORD for shared usage)
 
@@ -221,7 +236,9 @@ const char* morseCodeMap[] =
 #define BUZZER_PORT PORTB
 #define BUZZER_PIN  PB1 // Arduino Pin 9 (PB1)
 
-// Button for decoder
+// Push Button for decoder
+// Used to input Morse code via button presses
+// The button is connected to PD7 (Arduino Pin 7)
 #define BUTTON_DDR  DDRD
 #define BUTTON_PORT PORTD
 #define BUTTON_PIN  PD7
@@ -311,10 +328,27 @@ void delay_100ms_units(uint8_t units)
     }
 }
 
-// Simple delay in ms (blocking, for decoder like your reference)
-void delay_ms(uint16_t ms) {
-    while (ms--) {
-        for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) { 
+// Simple delay in ms
+/*
+    This is used to create a delay of approximately a number of milliseconds.
+    Outer loop runs for the number of milliseconds we want to delay.
+    Inner loop runs for a number of counts based on the CPU frequency.
+    The inner loop is calibrated to take approximately 1 ms per iteration.
+*/
+void delay_ms(uint16_t ms) 
+{
+    while (ms--) 
+    {
+        /*
+            Calculation:
+            F_CPU = 16 MHz
+            F_CPU/1000/8 = 2,000 counts per ms
+        */
+        for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) 
+        { 
+            //NOP: No operation instruction
+            // ASM means assembly code 
+            // volatile means this line is not optimized out by the compiler
             asm volatile ("nop"); 
         }
     }
@@ -328,15 +362,20 @@ void delay_ms(uint16_t ms) {
     We need to set the PWM frequency to 1 kHz for the buzzer 
     using Timer1 in CTC toggle mode (COM1A0 set).
     The formula for the output frequency is:
+
     f_OC1A = F_CPU / (2 * N * (1 + OCR1A))
+
     Where:
         F_CPU = 16 MHz
         N = Prescaler (we will use 64)
         OCR1A = Compare value for Timer1
+
     To achieve 1 kHz:
     1 kHz = 16 MHz / (2 * 64 * (1 + OCR1A))
+
     Rearranging gives:
     OCR1A = (F_CPU / (2 * N * f_OC1A)) - 1
+
     For f_OC1A = 1000 Hz and N = 64:
     OCR1A = (16,000,000 / (2 * 64 * 1000)) - 1 = 124
     So we set OCR1A = 124 for a 1 kHz PWM frequency.
@@ -374,33 +413,57 @@ void stop_buzzer_pwm(void)
     TIMER2 SETUP FOR DECODER LED BLINKING
     
     Timer2 interrupt for blinking LED_WORD_PIN during decoder mode
-    This provides visual feedback that decoder is active
+    This helps us time our button presses for dots and dashes.
 */
 
+// blink_state is used to toggle the LED_WORD_PIN
+// It is volatile because it is modified in the ISR
 volatile uint8_t blink_state = 0;
 
 // Set up Timer2 for CTC interrupt every DOT_DURATION ms
-void setup_timer2_blink(void) {
+void setup_timer2_blink(void) 
+{
     // 8-bit timer, prescaler 64, CTC mode
     TCCR2A = (1 << WGM21); // CTC mode
     TCCR2B = (1 << CS22);  // Prescaler 64
+
     // 16MHz / 64 = 250kHz, 1 count = 4us
     // DOT_DURATION ms = DOT_DURATION * 1000us / 4us = DOT_DURATION * 250 counts
     // For 200ms: 200 * 250 = 50000 counts, but OCR2A max is 255, so use ISR to count
+
     OCR2A = 249; // 1ms per compare match
     TIMSK2 = (1 << OCIE2A); // Enable CTC interrupt
 }
 
+// blink_counter is used to count the number of compare matches
 volatile uint16_t blink_counter = 0;
 
-ISR(TIMER2_COMPA_vect) {
+// Interrupt Service Routine for Timer2 Compare Match
+// This ISR toggles the LED_WORD_PIN at DOT_DURATION intervals
+// It increments the blink_counter and toggles the LED_WORD_PIN when it reaches DOT_DURATION
+ISR(TIMER2_COMPA_vect) 
+{
+    // Increment the blink counter
     blink_counter++;
-    if (blink_counter == DOT_DURATION) {
+
+    // Check if the blink counter has reached DOT_DURATION
+    if (blink_counter == DOT_DURATION) 
+    {
+        // Reset the blink counter
         blink_counter = 0;
+
+        // Toggle the LED_WORD_PIN
         blink_state = !blink_state;
-        if (blink_state) {
+
+        // Set or clear the LED_WORD_PIN based on blink_state
+        if (blink_state) 
+        {
+            // if true, turn on the LED_WORD_PIN
             LED_PORT |= (1 << LED_WORD_PIN);
-        } else {
+        } 
+        else 
+        {
+            // if false, turn off the LED_WORD_PIN
             LED_PORT &= ~(1 << LED_WORD_PIN);
         }
     }
@@ -408,13 +471,18 @@ ISR(TIMER2_COMPA_vect) {
 
 /*
     FUNCTION TO STOP TIMER2 BLINKING (WHEN SWITCHING TO ENCODER)
+
+    A simple timer2 disabling function
 */
-void stop_timer2_blink(void) {
+void stop_timer2_blink(void) 
+{
     // Disable Timer2 interrupt
     TIMSK2 = 0x00;
+
     // Stop Timer2
     TCCR2A = 0x00;
     TCCR2B = 0x00;
+
     // Turn off LED
     LED_PORT &= ~(1 << LED_WORD_PIN);
 }
@@ -549,13 +617,33 @@ const char* get_morse_code(char c)
 *******************************************************************************
 */
 
-// Morse code lookup table for decoding
-typedef struct {
+// MORSE_ENTRY: Morse code lookup table for decoding
+
+/*
+
+    A LUT (Look-Up Table) is used to decode Morse code strings back to characters.
+    Each entry in the table contains a Morse code string and its corresponding character.
+    The table is terminated with a NULL entry to indicate the end of the table.
+
+    How it works:
+    - Each entry in the table is a struct 
+    - containing a Morse code string and its corresponding character
+    - The decode_morse function iterates through the table
+    - It compares the input Morse code string with each entry's code
+    - If a match is found, it returns the corresponding character
+    - If no match is found, it returns a '?' character to indicate an unknown code
+    - The is_AR function checks for the AR (.-.-.) sequence to indicate the end of a message
+
+*/
+typedef struct 
+{
+    // Morse code string and its corresponding character
     const char* code;
     char letter;
 } MorseEntry;
 
-const MorseEntry morseDecodeTable[] = {
+const MorseEntry morseDecodeTable[] = 
+{
     { ".-", 'A' }, { "-...", 'B' }, { "-.-.", 'C' }, { "-..", 'D' }, { ".", 'E' },
     { "..-.", 'F' }, { "--.", 'G' }, { "....", 'H' }, { "..", 'I' }, { ".---", 'J' },
     { "-.-", 'K' }, { ".-..", 'L' }, { "--", 'M' }, { "-.", 'N' }, { "---", 'O' },
@@ -567,16 +655,34 @@ const MorseEntry morseDecodeTable[] = {
     { NULL, 0 }
 };
 
-// Helper: decode Morse string to char
-char decode_morse(const char* code) {
-    for (int i = 0; morseDecodeTable[i].code != NULL; i++) {
+/*
+    DECODE_MORSE FUNCTION:
+        Takes a Morse code string and returns the corresponding character
+        If the code is not found, it returns '?'
+*/
+char decode_morse(const char* code) 
+{
+    // Iterate through the morseDecodeTable to find the matching code
+    if (code == NULL) return '?'; // Handle NULL input
+    for (int i = 0; morseDecodeTable[i].code != NULL; i++) 
+    {
+        // Compare the input code with the Morse code in the table
+        // If a match is found, return the corresponding letter
         if (strcmp(morseDecodeTable[i].code, code) == 0) return morseDecodeTable[i].letter;
     }
+
+    // if not found, return '?'
     return '?';
 }
 
-// Helper: check for AR (.-.-.) - End of message sequence
-uint8_t is_AR(const char* code) {
+/*
+    IS_AR FUNCTION:
+        Checks if the input Morse code string is the AR sequence (.-.-.)
+        Returns 1 if it is AR, 0 otherwise
+*/
+uint8_t is_AR(const char* code) 
+{
+    // Check if the input code matches the AR sequence
     return strcmp(code, ".-.-.") == 0;
 }
 
@@ -589,13 +695,20 @@ uint8_t is_AR(const char* code) {
 */
 
 /*
-    SYSTEM MODES:
-    MODE_ENCODER = 0: Waiting for serial input, processing text to Morse
-    MODE_DECODER = 1: Waiting for button input, processing Morse to text
+    This works as a State Machine for the combined encoder/decoder system.
+    There are two modes:
+    - Encoder Mode: Waits for serial input, processes text to Morse code
+    - Decoder Mode: Waits for button input, processes Morse code to text
+    The system starts in Encoder Mode, processes input, and switches to Decoder Mode.
+    After processing in Decoder Mode, it switches back to Encoder Mode.
+
 */
+
+// Define the modes for the system
 #define MODE_ENCODER 0
 #define MODE_DECODER 1
 
+// Main function
 int main(void) 
 {
     /*
@@ -609,7 +722,7 @@ int main(void)
     LED_DDR |= (1 << LED_DOT_PIN) | (1 << LED_DASH_PIN);
     BUZZER_DDR |= (1 << BUZZER_PIN);
 
-    // Ensure all LEDs and buzzer are off initially
+    // Switch all LEDs and buzzer off initially
     LED_PORT &= ~(1 << LED_PIN);
     LED_PORT &= ~(1 << LED_LETTER_PIN);
     LED_PORT &= ~(1 << LED_WORD_PIN);
@@ -618,17 +731,17 @@ int main(void)
     LED_PORT &= ~(1 << LED_DASH_PIN);
     BUZZER_PORT &= ~(1 << BUZZER_PIN);
 
-    // Set button as input with pull-up (for decoder)
+    // Set push button as input with pull-up (for decoder)
     BUTTON_DDR &= ~(1 << BUTTON_PIN);
     BUTTON_PORT |= (1 << BUTTON_PIN);
 
-    // Initialize USART for encoder
+    // Initialize USART
     usart_init();
 
     // Initialize LCD
     lcd_init(LCD_DISP_ON);
     lcd_clrscr();
-    lcd_gotoxy(0, 0);  // Ensure cursor is at home position
+    lcd_gotoxy(0, 0); 
 
     /*
     *************************************************************************
@@ -636,14 +749,36 @@ int main(void)
     *************************************************************************
     */
     
-    uint8_t current_mode = MODE_ENCODER;  // Start with encoder mode
+    // current_mode is used to track the current mode of the system
+    // We start in encoder mode
+    uint8_t current_mode = MODE_ENCODER; 
     
-    // Encoder variables
+    /*
+        ENCODER VARIABLES:
+        - encoder_buffer: Buffer to store the input message from serial
+        - encoder_buf_idx: Index to track the current position in the buffer
+        - BUFFER_SIZE: Size of the encoder buffer (128 characters)
+    */
     #define BUFFER_SIZE 128
     char encoder_buffer[BUFFER_SIZE];
     uint8_t encoder_buf_idx = 0;
     
-    // Decoder variables
+    /*
+        DECODER VARIABLES:
+        - morse_buf: Buffer to store the Morse code input from button presses
+        - morse_idx: Index for the Morse code buffer
+
+        - msg_buf: Buffer to store the decoded message
+        - msg_idx: Index for the decoded message buffer
+
+        - last_btn: Last button state (to detect press/release)
+        - btn: Current button state (to read button input)
+
+        - press_time: Time when the button was pressed
+        - gap_time: Time since the last button press
+
+        - gap_decoded: Flag to indicate if a gap has been decoded
+    */
     static char morse_buf[16];
     static char msg_buf[128];
     uint8_t morse_idx = 0, msg_idx = 0;
@@ -651,12 +786,15 @@ int main(void)
     uint32_t press_time = 0, gap_time = 0;
     uint8_t gap_decoded = 0;
     
-    // Timing thresholds for decoder (exactly like your reference morse_dec.c)
+    // Timing thresholds for decoder
+    // These times are not strict limits but rather thresholds
     const uint16_t DOT_THRESH = DOT_DURATION;      // <200ms = dot (for button press timing)
     const uint16_t LETTER_GAP = LETTER_GAP_DURATION / 10;  // 600ms / 10ms = 60 increments
     const uint16_t WORD_GAP = WORD_GAP_DURATION / 10;      // 1400ms / 10ms = 140 increments
     
     // Initialize decoder buffers to ensure proper initialization
+    // The reason for this is to ensure that the buffers are cleared
+    // before we start using them in the decoder mode
     for (int i = 0; i < 16; i++) morse_buf[i] = 0;
     for (int i = 0; i < 128; i++) msg_buf[i] = 0;
     for (int i = 0; i < 16; i++) morse_buf[i] = '\0';
@@ -668,6 +806,7 @@ int main(void)
     *************************************************************************
     */
     
+    // A while loop to keep the system running indefinitely
     while (1) 
     {
         /*
@@ -675,6 +814,8 @@ int main(void)
             ENCODER MODE - SERIAL INPUT TO MORSE OUTPUT
         ***********************************************************************
         */
+
+        // If we are in encoder mode
         if (current_mode == MODE_ENCODER) 
         {
             // Stop decoder timer if running
@@ -682,7 +823,7 @@ int main(void)
             
             // Display encoder mode status
             lcd_clrscr();
-            lcd_gotoxy(0, 0);  // Ensure cursor is at home position
+            lcd_gotoxy(0, 0); 
             lcd_puts("ENCODER MODE");
             lcd_clrscr();
             lcd_puts("Enter message");
@@ -707,6 +848,7 @@ int main(void)
                 - Reset the buffer index after processing.
                 - Switch to decoder mode.
             */
+            
             
             while (current_mode == MODE_ENCODER) 
             {
@@ -812,7 +954,7 @@ int main(void)
 
                     // End of sentence
                     lcd_clrscr();
-                    lcd_gotoxy(0, 0);  // Ensure cursor is at home position
+                    lcd_gotoxy(0, 0); 
                     lcd_puts("ENCODING DONE");
                     
                     // Send completion message to serial
@@ -859,28 +1001,38 @@ int main(void)
             DECODER MODE - BUTTON INPUT TO TEXT OUTPUT
         ***********************************************************************
         */
+
+        // If we are in decoder mode
         else if (current_mode == MODE_DECODER) 
         {
             // Start decoder timer for LED blinking
             setup_timer2_blink();
-            sei(); // Enable global interrupts
+
+            // Enable global interrupts
+            sei(); 
             
             // Display decoder mode status
             lcd_clrscr();
             lcd_gotoxy(0, 0);  // Ensure cursor is at home position
             lcd_puts("DECODER MODE");
-            delay_ms(1000);  // Use simplified delay
+
+            // Use the created delay function to wait before showing ready message
+            delay_ms(1000);
+
+            // Clear the LCD and show ready message 
             lcd_clrscr();
-            lcd_gotoxy(0, 0);  // Ensure cursor is at home position
+            lcd_gotoxy(0, 0);  
             lcd_puts("READY:");
-            lcd_gotoxy(1, 0);  // Position cursor on second line for decoded text
-            
+            lcd_gotoxy(1, 0);  
+
             // Send mode info to serial
             usart_send_string("\r\n=== DECODER MODE ===\r\n");
             usart_send_string("Use button to input Morse code\r\n");
             usart_send_string("Send AR (.-.-.] to finish\r\n");
             
             // Reset decoder variables
+            // last_btn is set to 1 (not pressed) because we are waiting for a press
+            // as the button is pulled up
             morse_idx = 0;
             msg_idx = 0;
             gap_time = 0;
@@ -905,9 +1057,17 @@ int main(void)
             
             while (current_mode == MODE_DECODER) 
             {
+                // Read the button state
+                // The button is pulled up, so when pressed it reads 0
+                // We use BUTTON_PINREG to read the current state of the button
                 btn = (BUTTON_PINREG & (1 << BUTTON_PIN)) ? 1 : 0;
                 
-                if (!btn && last_btn) { // Button pressed
+                // Check if the button state has changed
+                // We only process the button state when it changes
+
+                // IF the button is pressed (btn == 0) and last_btn was released (last_btn == 1)
+                if (!btn && last_btn) 
+                { 
                     // Reset gap timing and decoding flag when starting new input
                     gap_time = 0;
                     gap_decoded = 0;
@@ -917,11 +1077,20 @@ int main(void)
                     BUZZER_PORT |= (1 << BUZZER_PIN);
                     
                     // Wait for release and measure duration
+                    // t is used to count the time in milliseconds
                     uint16_t t = 0;
-                    while (!(BUTTON_PINREG & (1 << BUTTON_PIN))) {
-                        delay_ms(1);  // Use simplified 1ms delay
-                        t++;  // Increment by 1ms
+
+                    // while the button is pressed (BUTTON_PINREG reads 0)
+                    while (!(BUTTON_PINREG & (1 << BUTTON_PIN))) 
+                    {
+                        // Increment t for each millisecond
+                        delay_ms(1);
+
+                        // Increment the time counter
+                        t++;
                     }
+
+                    // Here we measure the time the button was pressed
                     press_time = t;
                     
                     // End echo
@@ -929,45 +1098,94 @@ int main(void)
                     BUZZER_PORT &= ~(1 << BUZZER_PIN);
 
                     // Dot or dash (with buffer overflow protection)
-                    if (morse_idx < 15) { // Leave space for null terminator
-                        if (press_time < DOT_THRESH) {
+                    // Here we check if the press is a dot or a dash
+                    // We check if morse_idx is less than 15 to avoid buffer overflow
+                    if (morse_idx < 15) 
+                    { 
+                        // Check if the press time is less than the threshold for a dot
+                        if (press_time < DOT_THRESH) 
+                        {
+                            // It's a dot
+                            // Add dot to morse_buf and light up DOT LED
                             morse_buf[morse_idx++] = '.';
+
                             // Light up DOT LED and show on LCD immediately
                             LED_PORT |= (1 << LED_DOT_PIN);
                             lcd_gotoxy(0, 0);
-                            lcd_puts("DOT             ");  // Clear and show DOT
-                            delay_ms(200);  // 200ms using simplified delay
+
+                            // Clear and show that we have a dot
+                            lcd_puts("DOT             ");  
+                            delay_ms(200); 
+
+                            // Stop the DOT LED after 200ms
                             LED_PORT &= ~(1 << LED_DOT_PIN);
-                        } else {
+                        } 
+                        
+                        // If the press time is greater than or equal to the threshold for a dot
+                        // It is a dash
+                        else 
+                        {
+                            
+                            // Add dash to morse_buf and light up DASH LED
                             morse_buf[morse_idx++] = '-';
+
                             // Light up DASH LED and show on LCD immediately
                             LED_PORT |= (1 << LED_DASH_PIN);
                             lcd_gotoxy(0, 0);
-                            lcd_puts("DASH            ");  // Clear and show DASH
-                            delay_ms(200);  // 200ms using simplified delay
+
+                            // Clear and show that we have a dash
+                            lcd_puts("DASH            ");  
+                            delay_ms(200);
+
+                            // Stop the DASH LED after 200ms
                             LED_PORT &= ~(1 << LED_DASH_PIN);
                         }
+
+                        // After that, we need to null-terminate the morse_buf
+                        // This is to ensure that we can safely print it on the LCD
                         morse_buf[morse_idx] = '\0';
                         
                         // Show current morse buffer
                         lcd_gotoxy(0, 5);
                         lcd_puts(morse_buf);
-                        lcd_puts("        ");  // Clear remaining characters
+                        lcd_puts("        "); 
                     }
                 }
                 
-                // Always increment gap_time when button is not pressed, regardless of previous state
-                if (btn == 1) {  // Button not pressed (pull-up makes it 1 when not pressed)
+                // Always increment gap_time when button is not pressed, 
+                // regardless of previous state
+                // This is to track the time since the last button press
+                // If the button is not pressed, we increment gap_time
+
+                // if the button is not pressed (btn == 1)
+                if (btn == 1) 
+                {  
+                    // Keep incrementing gap_time
                     gap_time++;
                     
                     // Check for letter gap (immediate feedback)
-                    if (!gap_decoded && gap_time == LETTER_GAP && morse_idx > 0 && morse_buf[0] != 0) {
+                    /*
+                        if (!gap_decoded && gap_time == LETTER_GAP && morse_idx > 0 && morse_buf[0] != 0)
+                        means:
+                        - We haven't decoded a gap yet (gap_decoded == 0)
+                        - The gap time has reached the LETTER_GAP threshold
+                        - We have at least one Morse symbol in the buffer (morse_idx > 0)
+                        - The first character in morse_buf is not null (morse_buf[0] != 0)
+                        This indicates that we have a complete Morse letter to decode.
+                        If all these conditions are true, we decode the letter.
+                    
+                    */ 
+                    if (!gap_decoded && gap_time == LETTER_GAP && morse_idx > 0 && morse_buf[0] != 0) 
+                    {
+                        // Set gap_decoded to 1 to indicate we have processed a gap
                         gap_decoded = 1;
                         
-                        if (is_AR(morse_buf)) {
+                        // Check if the morse_buf contains a valid AR sequence
+                        if (is_AR(morse_buf)) 
+                        {
                             // AR sequence detected - show the accumulated message
                             lcd_clrscr();
-                            lcd_puts(msg_buf);  // Second line shows the message
+                            lcd_puts(msg_buf); 
                             
                             // Send final message to serial
                             usart_send_string("\r\nDecoded message: ");
@@ -985,12 +1203,25 @@ int main(void)
                             msg_idx = 0;
                             for (int i = 0; i < 16; i++) morse_buf[i] = 0;
                             for (int i = 0; i < 128; i++) msg_buf[i] = 0;
-                        } else {
+                        } 
+                        
+                        // else is for when we have a valid Morse letter
+                        // We decode the Morse code in morse_buf
+                        // and add it to the msg_buf
+                        else 
+                        {   
+                            // decoded is the character decoded from morse_buf
                             char decoded = decode_morse(morse_buf);
                             
                             // Only add valid decoded characters to buffer (don't display yet)
-                            if (decoded != '?' && decoded != 0 && msg_idx < 126) {
+                            // We check if decoded is not '?' (unknown) and not 0 (null character)
+                            // and if msg_idx is less than 126 to avoid buffer overflow
+                            if (decoded != '?' && decoded != 0 && msg_idx < 126) 
+                            {
+                                // Add the decoded character to msg_buf
                                 msg_buf[msg_idx++] = decoded;
+
+                                // Null-terminate the msg_buf
                                 msg_buf[msg_idx] = '\0';
                                 
                                 // Show "Letter Gap" message immediately
@@ -1005,10 +1236,27 @@ int main(void)
                     }
                     
                     // Check for word gap (add space and show message)
-                    if (gap_decoded && gap_time == WORD_GAP && msg_idx > 0) {
+                    
+                    /*
+                        if (gap_decoded && gap_time == WORD_GAP && msg_idx > 0)
+                        means:
+                        - We have already decoded a gap (gap_decoded == 1)
+                        - The gap time has reached the WORD_GAP threshold
+                        - We have at least one character in the msg_buf (msg_idx > 0)
+                        This indicates that we have a complete Morse word to decode.
+                        If all these conditions are true, we add a space to msg_buf
+                        and show the "Word Gap" message on the LCD.
+                    */ 
+
+                    if (gap_decoded && gap_time == WORD_GAP && msg_idx > 0) 
+                    {
                         // Add space for word gap
-                        if (msg_idx < 126) {
+                        if (msg_idx < 126) 
+                        {
+                            // Add a space to msg_buf
                             msg_buf[msg_idx++] = ' ';
+
+                            // Null-terminate the msg_buf
                             msg_buf[msg_idx] = '\0';
                         }
                         
@@ -1016,15 +1264,22 @@ int main(void)
                         lcd_gotoxy(0, 0);
                         lcd_puts("Word Gap        ");
                     }
-                } else {
+                } 
+                
+                // This else is for when the button is pressed
+                // We reset the gap timing and gap_decoded flag
+                else 
+                {
                     // Reset gap timing when button is pressed
                     gap_time = 0;
                     gap_decoded = 0;
                 }
                 
                 // Add proper timing for gap detection
-                delay_ms(10);  // 10ms delay for gap timing
+                delay_ms(10); 
                 
+                // Now we need to update the last_btn state
+                // So, we make last_btn equal to btn
                 last_btn = btn;
             }
         }
