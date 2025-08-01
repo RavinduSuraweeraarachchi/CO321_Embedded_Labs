@@ -293,17 +293,6 @@ void delay_100ms_units(uint8_t units)
 }
 
 /*
-    SIGNAL_MORSE FUNCTION:
-
-    We input a Morse code string (e.g., ".-") and signal it using the LED and buzzer.
-    We loop through each character in the Morse code string.
-    For each character, we turn on the LED and buzzer for the duration specified by the Morse code (dot or dash).
-    After signaling the character, we turn off the LED and buzzer.
-
-*/
-
-
-/*
     A PWM FUNCTION TO START THE BUZZER
 
     CALCULATIONS:
