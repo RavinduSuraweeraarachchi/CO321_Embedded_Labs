@@ -1,5 +1,5 @@
 # 1 "lcd.c"
-# 1 "/media/ravindu/Documents/University/CO321/Repo/CO321_Embedded_Labs/Lab7//"
+# 1 "/media/ravindu/Documents/University/CO321/Repo/CO321_Embedded_Labs/Project//"
 # 1 "<built-in>"
 # 1 "<command-line>"
 # 1 "lcd.c"

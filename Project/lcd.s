@@ -3039,12 +3039,10 @@ lcd_init:
 	.string	"lcd_data"
 .LASF34:
 	.string	"double"
-.LASF37:
-	.string	"/media/ravindu/Documents/University/CO321/Repo/CO321_Embedded_Labs/Lab7"
+.LASF20:
+	.string	"lcd_clrscr"
 .LASF19:
 	.string	"lcd_home"
-.LASF29:
-	.string	"lcd_newline"
 .LASF4:
 	.string	"unsigned int"
 .LASF30:
@@ -3057,6 +3055,8 @@ lcd_init:
 	.string	"dispAttr"
 .LASF38:
 	.string	"lcd_getxy"
+.LASF37:
+	.string	"/media/ravindu/Documents/University/CO321/Repo/CO321_Embedded_Labs/Project"
 .LASF8:
 	.string	"long long int"
 .LASF11:
@@ -3071,8 +3071,8 @@ lcd_init:
 	.string	"progmem_s"
 .LASF3:
 	.string	"uint16_t"
-.LASF20:
-	.string	"lcd_clrscr"
+.LASF29:
+	.string	"lcd_newline"
 .LASF6:
 	.string	"uint32_t"
 .LASF5:

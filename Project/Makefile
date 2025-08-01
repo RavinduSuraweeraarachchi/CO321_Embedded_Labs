@@ -34,9 +34,8 @@ F_CPU = 16000000
 
 
 # Target file name (without extension).
-#TARGET =  Lab7_Ex1_G09
-#TARGET =  Lab7_Ex2_G09
-TARGET =  Lab7_Ex3_G09
+#TARGET =  morse_decoder
+TARGET =  morse_encoder
 
 
 # List C source files here. (C dependencies are automatically generated.)

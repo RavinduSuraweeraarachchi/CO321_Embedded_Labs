@@ -5,17 +5,14 @@
 
 // Question:
 /*
-    PART 1: Morse Code Encoder
-    - Listen to the serial communication to the Arduino on USB Serial (9600 baud).
-    - Once receiving printable characters, convert them to Morse code.
-    - For every 
-        dot (.)
-        dash (-)
-        inter-symbol gap
-        inter-word gap
-        choose appropriate time intervals
-    - Light an LED and activate a piezo buzzer for each symbol
-    - Choose an appropriate frequency for the buzzer
+    PART 1: Morse Code Decoder
+    - Use a push button to give input
+    - in terms of dots(.) and dashes(-)
+    - Use appropriate time intervals for
+        dot, dash, inter-symbol gap, inter-word gap
+    - With each press echo LED and Buzzer
+    - End of message should be recognized as AR (.-.-.) sequence
+    - Decode the message and display it on the LCD
 */
 
 // Importing Necessary Libraries
@@ -71,7 +68,7 @@ void usart_init(void)
     Setting the Baud Rate
     */
     UBRR0L = (uint8_t)(UBRR); // Load lower 8 bits of UBRR
-    UBRR0H = (uint8_t)(UBRR >> 8); // Load upper 4 bits of UBRR
+    UBRR0H = (uint8_t)((UBRR) >> 8); // Load upper 4 bits of UBRR
     // It is alright to do this as last 4 bits of UBRR0H are reserved
 
     /*
@@ -199,7 +196,7 @@ So:
 */
 
 // 100ms delay using Timer1 in CTC mode, prescaler 64
-void delay_timer()
+void delay_timer(void)
 {
     // Set Timer1 to CTC mode (Clear Timer on Compare Match)
     TCCR1A = 0x00;
@@ -246,67 +243,51 @@ Defining hardware pins and time intervals for Morse code symbols
 #define LETTER_GAP_DURATION (3 * DOT_DURATION)
 #define WORD_GAP_DURATION (7 * DOT_DURATION)
 
-// Helper function: delay for N x 100ms using delay_timer()
-void delay_100ms_units(uint8_t units) {
-    for (uint8_t i = 0; i < units; i++) {
-        delay_timer();
+
+// --- Decoder-specific definitions ---
+#define BUTTON_DDR  DDRD
+#define BUTTON_PORT PORTD
+#define BUTTON_PIN  PD7
+#define BUTTON_PINREG  PIND
+
+#define MAX_MORSE_LEN 8
+#define MAX_MSG_LEN 32
+
+// Morse code lookup table for decoding
+typedef struct {
+    const char* code;
+    char letter;
+} MorseEntry;
+
+const MorseEntry morseDecodeTable[] = {
+    { ".-", 'A' }, { "-...", 'B' }, { "-.-.", 'C' }, { "-..", 'D' }, { ".", 'E' },
+    { "..-.", 'F' }, { "--.", 'G' }, { "....", 'H' }, { "..", 'I' }, { ".---", 'J' },
+    { "-.-", 'K' }, { ".-..", 'L' }, { "--", 'M' }, { "-.", 'N' }, { "---", 'O' },
+    { ".--.", 'P' }, { "--.-", 'Q' }, { ".-.", 'R' }, { "...", 'S' }, { "-", 'T' },
+    { "..-", 'U' }, { "...-", 'V' }, { ".--", 'W' }, { "-..-", 'X' }, { "-.--", 'Y' },
+    { "--..", 'Z' },
+    { "-----", '0' }, { ".----", '1' }, { "..---", '2' }, { "...--", '3' }, { "....-", '4' },
+    { ".....", '5' }, { "-....", '6' }, { "--...", '7' }, { "---..", '8' }, { "----.", '9' },
+    { NULL, 0 }
+};
+
+// Helper: decode Morse string to char
+char decode_morse(const char* code) {
+    for (int i = 0; morseDecodeTable[i].code != NULL; i++) {
+        if (strcmp(morseDecodeTable[i].code, code) == 0) return morseDecodeTable[i].letter;
     }
+    return '?';
 }
 
-// Function to signal a single Morse code character (dot/dash sequence)
-void signal_morse(const char* morse_string) {
-    int i = 0;
-    while (morse_string[i] != '\0') {
-        // Turn ON LED
-        LED_PORT |= (1 << LED_PIN);
-
-        // Determine ON duration in ms
-        uint16_t on_duration_ms = (morse_string[i] == '.') ? DOT_DURATION : DASH_DURATION;
-        uint16_t elapsed = 0;
-        while (elapsed < on_duration_ms) {
-            // Toggle buzzer pin for 500 Hz (1 ms period: 0.5 ms high, 0.5 ms low)
-            BUZZER_PORT |= (1 << BUZZER_PIN); // High
-            // Delay 0.5 ms
-            for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8 / 2); d++) { asm volatile ("nop"); }
-            BUZZER_PORT &= ~(1 << BUZZER_PIN); // Low
-            // Delay 0.5 ms
-            for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8 / 2); d++) { asm volatile ("nop"); }
-            elapsed++;
-        }
-
-        // Turn OFF LED and buzzer
-        LED_PORT &= ~(1 << LED_PIN);
-        BUZZER_PORT &= ~(1 << BUZZER_PIN);
-
-        // Inter-symbol gap (only if not last symbol)
-        if (morse_string[i+1] != '\0') {
-            delay_100ms_units(SYMBOL_GAP_DURATION / 100);
-        }
-        i++;
-    }
+// Helper: check for AR (.-.-.)
+uint8_t is_AR(const char* code) {
+    return strcmp(code, ".-.-.") == 0;
 }
 
-// Function to handle the gap between letters
-void letter_gap() {
-    delay_100ms_units(LETTER_GAP_DURATION / 100);
-}
-
-// Function to handle the gap between words
-void word_gap() {
-    delay_100ms_units(WORD_GAP_DURATION / 100);
-}
-
-
-// Helper: Get Morse code string for a character (A-Z, 0-9)
-const char* get_morse_code(char c) {
-    if (c >= 'A' && c <= 'Z') {
-        return morseCodeMap[c - 'A'];
-    } else if (c >= 'a' && c <= 'z') {
-        return morseCodeMap[c - 'a'];
-    } else if (c >= '0' && c <= '9') {
-        return morseCodeMap[26 + (c - '0')];
-    } else {
-        return NULL;
+// Simple delay in ms (blocking, for echo)
+void delay_ms(uint16_t ms) {
+    while (ms--) {
+        for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) { asm volatile ("nop"); }
     }
 }
 
@@ -314,35 +295,97 @@ int main(void) {
     // Set LED and buzzer pins as output
     LED_DDR |= (1 << LED_PIN);
     BUZZER_DDR |= (1 << BUZZER_PIN);
+    // Set button as input with pull-up
+    BUTTON_DDR &= ~(1 << BUTTON_PIN);
+    BUTTON_PORT |= (1 << BUTTON_PIN);
 
-    // Ensure LED and buzzer are off
-    LED_PORT &= ~(1 << LED_PIN);
-    BUZZER_PORT &= ~(1 << BUZZER_PIN);
+    // Initialize LCD
+    lcd_init(LCD_DISP_ON);
+    lcd_clrscr();
+    lcd_gotoxy(0,0);
+    lcd_puts("Morse Decoder");
 
-    // Initialize USART
-    usart_init();
+    char morse_buf[MAX_MORSE_LEN+1] = {0};
+    char msg_buf[MAX_MSG_LEN+1] = {0};
+    uint8_t morse_idx = 0, msg_idx = 0;
+    uint8_t last_btn = 1, btn;
+    uint32_t press_time = 0, gap_time = 0;
 
-    // Optional: Initialize LCD if you want to display received chars
-    // lcd_init();
+    // Timing thresholds (ms)
+    const uint16_t DOT_THRESH = 200;      // <200ms = dot
+    const uint16_t LETTER_GAP = 600;      // >=600ms = letter gap
+    const uint16_t WORD_GAP = 1400;       // >=1400ms = word gap
 
+    // Main loop
     while (1) {
-        char c = usart_receive();
-        // Echo received character back (optional)
-        usart_send(c);
-
-        if (c == ' ') {
-            // Space = word gap
-            word_gap();
-        } else {
-            const char* morse = get_morse_code(c);
-            if (morse != NULL) {
-                signal_morse(morse);
-                letter_gap();
+        btn = (BUTTON_PINREG & (1 << BUTTON_PIN)) ? 1 : 0;
+        if (!btn && last_btn) { // Button pressed
+            // Echo LED/buzzer
+            LED_PORT |= (1 << LED_PIN);
+            BUZZER_PORT |= (1 << BUZZER_PIN);
+            // Wait for release and measure duration
+            uint16_t t = 0;
+            while (!(BUTTON_PINREG & (1 << BUTTON_PIN))) {
+                delay_ms(1);
+                t++;
             }
-            // else: ignore unsupported chars
-        }
-    }
+            press_time = t;
+            // End echo
+            LED_PORT &= ~(1 << LED_PIN);
+            BUZZER_PORT &= ~(1 << BUZZER_PIN);
 
+            // Dot or dash
+            if (press_time < DOT_THRESH) {
+                morse_buf[morse_idx++] = '.';
+            } else {
+                morse_buf[morse_idx++] = '-';
+            }
+            morse_buf[morse_idx] = '\0';
+            gap_time = 0;
+        } else if (btn && !last_btn) { // Button released
+            // Start gap timing
+            gap_time = 0;
+            while ((BUTTON_PINREG & (1 << BUTTON_PIN)) && gap_time < WORD_GAP) {
+                delay_ms(1);
+                gap_time++;
+                if (!(BUTTON_PINREG & (1 << BUTTON_PIN))) break;
+            }
+            // If gap is long enough, treat as letter/word
+            if (gap_time >= WORD_GAP) {
+                if (morse_idx > 0) {
+                    char decoded = decode_morse(morse_buf);
+                    msg_buf[msg_idx++] = decoded;
+                    morse_idx = 0;
+                    morse_buf[0] = '\0';
+                }
+                msg_buf[msg_idx++] = ' ';
+                msg_buf[msg_idx] = '\0';
+            } else if (gap_time >= LETTER_GAP) {
+                if (morse_idx > 0) {
+                    char decoded = decode_morse(morse_buf);
+                    msg_buf[msg_idx++] = decoded;
+                    morse_idx = 0;
+                    morse_buf[0] = '\0';
+                }
+                msg_buf[msg_idx] = '\0';
+            }
+            // Check for AR (.-.-.)
+            if (is_AR(morse_buf)) {
+                lcd_clrscr();
+                lcd_gotoxy(0,0);
+                lcd_puts("Decoded:");
+                lcd_gotoxy(1,0);
+                lcd_puts(msg_buf);
+                morse_idx = 0; msg_idx = 0;
+                morse_buf[0] = '\0'; msg_buf[0] = '\0';
+                delay_ms(2000);
+                lcd_clrscr();
+                lcd_gotoxy(0,0);
+                lcd_puts("Morse Decoder");
+            }
+        }
+        last_btn = btn;
+    }
     return 0;
 }
 

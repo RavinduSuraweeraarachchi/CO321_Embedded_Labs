@@ -1,0 +1,1445 @@
+   1               		.file	"morse_encoder.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	usart_init
+  12               	usart_init:
+  13               	.LFB1:
+  14               		.file 1 "morse_encoder.c"
+   1:morse_encoder.c **** // CO321 Embedded Systems
+   2:morse_encoder.c **** // Project: Morse Communicator
+   3:morse_encoder.c **** // Part 1: Morse Code Encoder
+   4:morse_encoder.c **** // Group 09
+   5:morse_encoder.c **** 
+   6:morse_encoder.c **** // Question:
+   7:morse_encoder.c **** /*
+   8:morse_encoder.c ****     PART 1: Morse Code Decoder
+   9:morse_encoder.c ****     - Use a push button to give input
+  10:morse_encoder.c ****     - in terms of dots(.) and dashes(-)
+  11:morse_encoder.c ****     - Use appropriate time intervals for
+  12:morse_encoder.c ****         dot, dash, inter-symbol gap, inter-word gap
+  13:morse_encoder.c ****     - With each press echo LED and Buzzer
+  14:morse_encoder.c ****     - End of message should be recognized as AR (.-.-.) sequence
+  15:morse_encoder.c ****     - Decode the message and display it on the LCD
+  16:morse_encoder.c **** */
+  17:morse_encoder.c **** 
+  18:morse_encoder.c **** // Importing Necessary Libraries
+  19:morse_encoder.c **** #include <avr/io.h>
+  20:morse_encoder.c **** #include <avr/interrupt.h>
+  21:morse_encoder.c **** #include "lcd.h"
+  22:morse_encoder.c **** #include <string.h>
+  23:morse_encoder.c **** 
+  24:morse_encoder.c **** // For Serial Communication
+  25:morse_encoder.c **** 
+  26:morse_encoder.c **** // Define the Baud Rate
+  27:morse_encoder.c **** #define BAUD_RATE 9600
+  28:morse_encoder.c **** 
+  29:morse_encoder.c **** // F_OSC for Calculation of UBRR Value
+  30:morse_encoder.c **** #define F_OSC 16000000UL
+  31:morse_encoder.c **** 
+  32:morse_encoder.c **** // Equation to calculate UBRR value
+  33:morse_encoder.c **** 
+  34:morse_encoder.c **** /*
+  35:morse_encoder.c **** We know that Desired Baud Rate (BAUD_RATE) = F_OSC / (16 * (X + 1))
+  36:morse_encoder.c **** We need to subject X, which is the value to be loaded to UBRR register.
+  37:morse_encoder.c **** X + 1 = F_OSC / (16 * BAUD_RATE)
+  38:morse_encoder.c **** X = (F_OSC / (16 * BAUD_RATE)) - 1
+  39:morse_encoder.c **** */
+  40:morse_encoder.c **** 
+  41:morse_encoder.c **** #define UBRR (F_OSC/16/BAUD_RATE)-1
+  42:morse_encoder.c **** 
+  43:morse_encoder.c **** 
+  44:morse_encoder.c **** /*
+  45:morse_encoder.c **** *******************************************************************************
+  46:morse_encoder.c **** *******************************************************************************
+  47:morse_encoder.c ****     For Serial Communication
+  48:morse_encoder.c ****     Previously created functions are needed
+  49:morse_encoder.c **** 
+  50:morse_encoder.c **** *******************************************************************************
+  51:morse_encoder.c **** *******************************************************************************
+  52:morse_encoder.c **** */
+  53:morse_encoder.c **** 
+  54:morse_encoder.c **** void usart_init(void)
+  55:morse_encoder.c **** {
+  15               		.loc 1 55 0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+  56:morse_encoder.c **** 
+  57:morse_encoder.c ****     /*
+  58:morse_encoder.c ****     Enabling the Transmitter
+  59:morse_encoder.c ****     */
+  60:morse_encoder.c ****     UCSR0B |= (1 << TXEN0); // Enable transmitter
+  21               		.loc 1 60 0
+  22 0000 A1EC      		ldi r26,lo8(-63)
+  23 0002 B0E0      		ldi r27,0
+  24 0004 8C91      		ld r24,X
+  25 0006 8860      		ori r24,lo8(8)
+  26 0008 8C93      		st X,r24
+  61:morse_encoder.c **** 
+  62:morse_encoder.c ****     /*
+  63:morse_encoder.c ****     Enabling the Receiver
+  64:morse_encoder.c ****     */
+  65:morse_encoder.c ****     UCSR0B |= (1 << RXEN0); // Enable receiver
+  27               		.loc 1 65 0
+  28 000a 8C91      		ld r24,X
+  29 000c 8061      		ori r24,lo8(16)
+  30 000e 8C93      		st X,r24
+  66:morse_encoder.c **** 
+  67:morse_encoder.c ****     /*
+  68:morse_encoder.c ****     Setting the Baud Rate
+  69:morse_encoder.c ****     */
+  70:morse_encoder.c ****     UBRR0L = (uint8_t)(UBRR); // Load lower 8 bits of UBRR
+  31               		.loc 1 70 0
+  32 0010 87E6      		ldi r24,lo8(103)
+  33 0012 8093 C400 		sts 196,r24
+  71:morse_encoder.c ****     UBRR0H = (uint8_t)((UBRR) >> 8); // Load upper 4 bits of UBRR
+  34               		.loc 1 71 0
+  35 0016 1092 C500 		sts 197,__zero_reg__
+  72:morse_encoder.c ****     // It is alright to do this as last 4 bits of UBRR0H are reserved
+  73:morse_encoder.c **** 
+  74:morse_encoder.c ****     /*
+  75:morse_encoder.c ****     Setting to Asynchronous Mode
+  76:morse_encoder.c ****     */
+  77:morse_encoder.c ****     UCSR0C &= ~(1<<UMSEL01);
+  36               		.loc 1 77 0
+  37 001a E2EC      		ldi r30,lo8(-62)
+  38 001c F0E0      		ldi r31,0
+  39 001e 8081      		ld r24,Z
+  40 0020 8F77      		andi r24,lo8(127)
+  41 0022 8083      		st Z,r24
+  78:morse_encoder.c ****     UCSR0C &= ~(1<<UMSEL00);
+  42               		.loc 1 78 0
+  43 0024 8081      		ld r24,Z
+  44 0026 8F7B      		andi r24,lo8(-65)
+  45 0028 8083      		st Z,r24
+  79:morse_encoder.c **** 
+  80:morse_encoder.c ****     /*
+  81:morse_encoder.c ****     Setting 8-bit data mode
+  82:morse_encoder.c ****     */
+  83:morse_encoder.c ****     UCSR0B &= ~(1 << UCSZ02); // Clear UCSZ02
+  46               		.loc 1 83 0
+  47 002a 8C91      		ld r24,X
+  48 002c 8B7F      		andi r24,lo8(-5)
+  49 002e 8C93      		st X,r24
+  84:morse_encoder.c ****     UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00); // Set UCSZ01 and UCSZ00
+  50               		.loc 1 84 0
+  51 0030 8081      		ld r24,Z
+  52 0032 8660      		ori r24,lo8(6)
+  53 0034 8083      		st Z,r24
+  85:morse_encoder.c **** 
+  86:morse_encoder.c ****     /*
+  87:morse_encoder.c ****     Setting the Parity Mode   
+  88:morse_encoder.c ****     */
+  89:morse_encoder.c ****     
+  90:morse_encoder.c ****     UCSR0C &= ~(1<<UPM00);
+  54               		.loc 1 90 0
+  55 0036 8081      		ld r24,Z
+  56 0038 8F7E      		andi r24,lo8(-17)
+  57 003a 8083      		st Z,r24
+  91:morse_encoder.c ****     UCSR0C &= ~(1<<UPM01);
+  58               		.loc 1 91 0
+  59 003c 8081      		ld r24,Z
+  60 003e 8F7D      		andi r24,lo8(-33)
+  61 0040 8083      		st Z,r24
+  92:morse_encoder.c **** 
+  93:morse_encoder.c ****     /*    Setting the Stop Bit
+  94:morse_encoder.c ****     */
+  95:morse_encoder.c ****     UCSR0C &= ~(1 << USBS0); 
+  62               		.loc 1 95 0
+  63 0042 8081      		ld r24,Z
+  64 0044 877F      		andi r24,lo8(-9)
+  65 0046 8083      		st Z,r24
+  66               	/* epilogue start */
+  96:morse_encoder.c **** 
+  97:morse_encoder.c **** }
+  67               		.loc 1 97 0
+  68 0048 0895      		ret
+  69               		.cfi_endproc
+  70               	.LFE1:
+  72               	.global	usart_send
+  74               	usart_send:
+  75               	.LFB2:
+  98:morse_encoder.c **** 
+  99:morse_encoder.c **** void usart_send(char send_char)
+ 100:morse_encoder.c **** {
+  76               		.loc 1 100 0
+  77               		.cfi_startproc
+  78               	/* prologue: function */
+  79               	/* frame size = 0 */
+  80               	/* stack size = 0 */
+  81               	.L__stack_usage = 0
+  82               	.LVL0:
+  83               	.L3:
+ 101:morse_encoder.c ****     // We can wait until the transmit buffer is empty
+ 102:morse_encoder.c ****     // i.e. it waits as long as the UDRE0 bit is not set (0)
+ 103:morse_encoder.c ****     while (!(UCSR0A & (1 << UDRE0)));
+  84               		.loc 1 103 0 discriminator 1
+  85 004a 9091 C000 		lds r25,192
+  86               		.loc 1 103 0 discriminator 1
+  87 004e 95FF      		sbrs r25,5
+  88 0050 00C0      		rjmp .L3
+ 104:morse_encoder.c **** 
+ 105:morse_encoder.c ****     // Load the character into the transmit buffer
+ 106:morse_encoder.c ****     UDR0 = send_char;   
+  89               		.loc 1 106 0
+  90 0052 8093 C600 		sts 198,r24
+  91               	/* epilogue start */
+ 107:morse_encoder.c **** }
+  92               		.loc 1 107 0
+  93 0056 0895      		ret
+  94               		.cfi_endproc
+  95               	.LFE2:
+  97               	.global	usart_receive
+  99               	usart_receive:
+ 100               	.LFB3:
+ 108:morse_encoder.c **** 
+ 109:morse_encoder.c **** char usart_receive(void)
+ 110:morse_encoder.c **** {
+ 101               		.loc 1 110 0
+ 102               		.cfi_startproc
+ 103               	/* prologue: function */
+ 104               	/* frame size = 0 */
+ 105               	/* stack size = 0 */
+ 106               	.L__stack_usage = 0
+ 107               	.L7:
+ 111:morse_encoder.c ****     // Wait until a character is received
+ 112:morse_encoder.c ****     while (!(UCSR0A & (1 << RXC0)));
+ 108               		.loc 1 112 0 discriminator 1
+ 109 0058 8091 C000 		lds r24,192
+ 110               		.loc 1 112 0 discriminator 1
+ 111 005c 87FF      		sbrs r24,7
+ 112 005e 00C0      		rjmp .L7
+ 113:morse_encoder.c **** 
+ 114:morse_encoder.c ****     // Return the received character from the data register
+ 115:morse_encoder.c ****     return UDR0;
+ 113               		.loc 1 115 0
+ 114 0060 8091 C600 		lds r24,198
+ 115               	/* epilogue start */
+ 116:morse_encoder.c **** }
+ 116               		.loc 1 116 0
+ 117 0064 0895      		ret
+ 118               		.cfi_endproc
+ 119               	.LFE3:
+ 121               	.global	usart_send_string
+ 123               	usart_send_string:
+ 124               	.LFB4:
+ 117:morse_encoder.c **** 
+ 118:morse_encoder.c **** 
+ 119:morse_encoder.c **** void usart_send_string(char* str)
+ 120:morse_encoder.c **** {
+ 125               		.loc 1 120 0
+ 126               		.cfi_startproc
+ 127               	.LVL1:
+ 128 0066 CF93      		push r28
+ 129               	.LCFI0:
+ 130               		.cfi_def_cfa_offset 3
+ 131               		.cfi_offset 28, -2
+ 132 0068 DF93      		push r29
+ 133               	.LCFI1:
+ 134               		.cfi_def_cfa_offset 4
+ 135               		.cfi_offset 29, -3
+ 136               	/* prologue: function */
+ 137               	/* frame size = 0 */
+ 138               	/* stack size = 2 */
+ 139               	.L__stack_usage = 2
+ 140 006a EC01      		movw r28,r24
+ 141               	.LVL2:
+ 142               	.L10:
+ 121:morse_encoder.c ****     while (*str != '\0')
+ 143               		.loc 1 121 0
+ 144 006c 8991      		ld r24,Y+
+ 145               	.LVL3:
+ 146 006e 8111      		cpse r24,__zero_reg__
+ 147 0070 00C0      		rjmp .L11
+ 148               	/* epilogue start */
+ 122:morse_encoder.c ****     {
+ 123:morse_encoder.c ****         usart_send(*str);
+ 124:morse_encoder.c ****         str++;
+ 125:morse_encoder.c ****     }
+ 126:morse_encoder.c **** }
+ 149               		.loc 1 126 0
+ 150 0072 DF91      		pop r29
+ 151 0074 CF91      		pop r28
+ 152               	.LVL4:
+ 153 0076 0895      		ret
+ 154               	.LVL5:
+ 155               	.L11:
+ 123:morse_encoder.c ****         str++;
+ 156               		.loc 1 123 0
+ 157 0078 0E94 0000 		call usart_send
+ 158               	.LVL6:
+ 159 007c 00C0      		rjmp .L10
+ 160               		.cfi_endproc
+ 161               	.LFE4:
+ 163               	.global	delay_timer
+ 165               	delay_timer:
+ 166               	.LFB5:
+ 127:morse_encoder.c **** 
+ 128:morse_encoder.c **** /*
+ 129:morse_encoder.c **** *******************************************************************************
+ 130:morse_encoder.c **** *******************************************************************************
+ 131:morse_encoder.c **** */
+ 132:morse_encoder.c **** 
+ 133:morse_encoder.c **** const char* morseCodeMap[] = {
+ 134:morse_encoder.c ****     ".-",    // A
+ 135:morse_encoder.c ****     "-...",  // B
+ 136:morse_encoder.c ****     "-.-.",  // C
+ 137:morse_encoder.c ****     "-..",   // D
+ 138:morse_encoder.c ****     ".",     // E
+ 139:morse_encoder.c ****     "..-.",  // F
+ 140:morse_encoder.c ****     "--.",   // G
+ 141:morse_encoder.c ****     "....",  // H
+ 142:morse_encoder.c ****     "..",    // I
+ 143:morse_encoder.c ****     ".---",  // J
+ 144:morse_encoder.c ****     "-.-",   // K
+ 145:morse_encoder.c ****     ".-..",  // L
+ 146:morse_encoder.c ****     "--",    // M
+ 147:morse_encoder.c ****     "-.",    // N
+ 148:morse_encoder.c ****     "---",   // O
+ 149:morse_encoder.c ****     ".--.",  // P
+ 150:morse_encoder.c ****     "--.-",  // Q
+ 151:morse_encoder.c ****     ".-.",   // R
+ 152:morse_encoder.c ****     "...",   // S
+ 153:morse_encoder.c ****     "-",     // T
+ 154:morse_encoder.c ****     "..-",   // U
+ 155:morse_encoder.c ****     "...-",  // V
+ 156:morse_encoder.c ****     ".--",   // W
+ 157:morse_encoder.c ****     "-..-",  // X
+ 158:morse_encoder.c ****     "-.--",  // Y
+ 159:morse_encoder.c ****     "--..",  // Z
+ 160:morse_encoder.c ****     "-----", // 0
+ 161:morse_encoder.c ****     ".----", // 1
+ 162:morse_encoder.c ****     "..---", // 2
+ 163:morse_encoder.c ****     "...--", // 3
+ 164:morse_encoder.c ****     "....-", // 4
+ 165:morse_encoder.c ****     ".....", // 5
+ 166:morse_encoder.c ****     "-....", // 6
+ 167:morse_encoder.c ****     "--...", // 7
+ 168:morse_encoder.c ****     "---..", // 8
+ 169:morse_encoder.c ****     "----."  // 9
+ 170:morse_encoder.c **** };
+ 171:morse_encoder.c **** 
+ 172:morse_encoder.c **** 
+ 173:morse_encoder.c **** /*
+ 174:morse_encoder.c **** CALCULATIONS:
+ 175:morse_encoder.c **** 
+ 176:morse_encoder.c **** XTAL = 16 MHz
+ 177:morse_encoder.c **** i.e. 1 clock cycle = 1 / 16 microseconds
+ 178:morse_encoder.c **** Let us use 1:256 Prescaler
+ 179:morse_encoder.c **** 
+ 180:morse_encoder.c **** Period of counter clock = 1 / (16 MHz / 256) = 16 microseconds
+ 181:morse_encoder.c **** To toggle every 100 ms, we need to count 6250 cycles (100 ms / 16 microseconds = 6250).
+ 182:morse_encoder.c **** 
+ 183:morse_encoder.c **** Since 6250 > 256, we need to use timer overflow.
+ 184:morse_encoder.c **** Each overflow: 256 counts * 16 us = 4096 us = 4.096 ms
+ 185:morse_encoder.c **** Number of overflows needed: 100 ms / 4.096 ms ≈ 24.41 → 24 full overflows + partial
+ 186:morse_encoder.c **** 
+ 187:morse_encoder.c **** Full overflows: 24 * 4096 us = 98304 us
+ 188:morse_encoder.c **** Remaining time: 100000 us - 98304 us = 1696 us
+ 189:morse_encoder.c **** Counts for last overflow: 1696 us / 16 us = 106
+ 190:morse_encoder.c **** Initial counter value for last overflow: 256 - 106 = 150
+ 191:morse_encoder.c **** 
+ 192:morse_encoder.c **** So:
+ 193:morse_encoder.c ****     * Run timer for 24 overflows (start from 0)
+ 194:morse_encoder.c ****     * On 25th overflow, start from 150 to get remaining time
+ 195:morse_encoder.c ****     * Total delay ≈ 100 ms
+ 196:morse_encoder.c **** */
+ 197:morse_encoder.c **** 
+ 198:morse_encoder.c **** // 100ms delay using Timer1 in CTC mode, prescaler 64
+ 199:morse_encoder.c **** void delay_timer(void)
+ 200:morse_encoder.c **** {
+ 167               		.loc 1 200 0
+ 168               		.cfi_startproc
+ 169               	/* prologue: function */
+ 170               	/* frame size = 0 */
+ 171               	/* stack size = 0 */
+ 172               	.L__stack_usage = 0
+ 201:morse_encoder.c ****     // Set Timer1 to CTC mode (Clear Timer on Compare Match)
+ 202:morse_encoder.c ****     TCCR1A = 0x00;
+ 173               		.loc 1 202 0
+ 174 007e 1092 8000 		sts 128,__zero_reg__
+ 203:morse_encoder.c ****     TCCR1B = (1 << WGM12); // CTC mode
+ 175               		.loc 1 203 0
+ 176 0082 88E0      		ldi r24,lo8(8)
+ 177 0084 8093 8100 		sts 129,r24
+ 204:morse_encoder.c **** 
+ 205:morse_encoder.c ****     // Calculate compare value for 100ms:
+ 206:morse_encoder.c ****     // OCR1A = (F_CPU / (Prescaler * Target Frequency)) - 1
+ 207:morse_encoder.c ****     // For 100ms: Target Frequency = 10Hz (period = 0.1s)
+ 208:morse_encoder.c ****     // OCR1A = (16,000,000 / (64 * 10)) - 1 = 24,999
+ 209:morse_encoder.c ****     OCR1A = 24999;
+ 178               		.loc 1 209 0
+ 179 0088 87EA      		ldi r24,lo8(-89)
+ 180 008a 91E6      		ldi r25,lo8(97)
+ 181 008c 9093 8900 		sts 136+1,r25
+ 182 0090 8093 8800 		sts 136,r24
+ 210:morse_encoder.c **** 
+ 211:morse_encoder.c ****     // Set prescaler to 64 and start the timer
+ 212:morse_encoder.c ****     TCCR1B |= (1 << CS11) | (1 << CS10); // Prescaler 64
+ 183               		.loc 1 212 0
+ 184 0094 8091 8100 		lds r24,129
+ 185 0098 8360      		ori r24,lo8(3)
+ 186 009a 8093 8100 		sts 129,r24
+ 213:morse_encoder.c **** 
+ 214:morse_encoder.c ****     // Clear the compare match flag
+ 215:morse_encoder.c ****     TIFR1 |= (1 << OCF1A);
+ 187               		.loc 1 215 0
+ 188 009e B19A      		sbi 0x16,1
+ 189               	.L13:
+ 216:morse_encoder.c **** 
+ 217:morse_encoder.c ****     // Wait for compare match
+ 218:morse_encoder.c ****     while ((TIFR1 & (1 << OCF1A)) == 0);
+ 190               		.loc 1 218 0 discriminator 1
+ 191 00a0 B19B      		sbis 0x16,1
+ 192 00a2 00C0      		rjmp .L13
+ 219:morse_encoder.c **** 
+ 220:morse_encoder.c ****     // Stop the timer
+ 221:morse_encoder.c ****     TCCR1B = 0x00;
+ 193               		.loc 1 221 0
+ 194 00a4 1092 8100 		sts 129,__zero_reg__
+ 222:morse_encoder.c ****     // Clear the compare match flag
+ 223:morse_encoder.c ****     TIFR1 |= (1 << OCF1A);
+ 195               		.loc 1 223 0
+ 196 00a8 B19A      		sbi 0x16,1
+ 197               	/* epilogue start */
+ 224:morse_encoder.c **** }
+ 198               		.loc 1 224 0
+ 199 00aa 0895      		ret
+ 200               		.cfi_endproc
+ 201               	.LFE5:
+ 203               	.global	decode_morse
+ 205               	decode_morse:
+ 206               	.LFB6:
+ 225:morse_encoder.c **** 
+ 226:morse_encoder.c **** /*
+ 227:morse_encoder.c **** Defining hardware pins and time intervals for Morse code symbols
+ 228:morse_encoder.c **** 
+ 229:morse_encoder.c **** */
+ 230:morse_encoder.c **** 
+ 231:morse_encoder.c **** #define LED_DDR  DDRB
+ 232:morse_encoder.c **** #define LED_PORT PORTB
+ 233:morse_encoder.c **** #define LED_PIN  PB5 // Arduino Pin 13 (On-board LED)
+ 234:morse_encoder.c **** 
+ 235:morse_encoder.c **** #define BUZZER_DDR  DDRB
+ 236:morse_encoder.c **** #define BUZZER_PORT PORTB
+ 237:morse_encoder.c **** #define BUZZER_PIN  PB1 // Changed to Arduino Pin 9 (PB1)
+ 238:morse_encoder.c **** 
+ 239:morse_encoder.c **** // Morse code timing (in milliseconds)
+ 240:morse_encoder.c **** #define DOT_DURATION 200
+ 241:morse_encoder.c **** #define DASH_DURATION (3 * DOT_DURATION)
+ 242:morse_encoder.c **** #define SYMBOL_GAP_DURATION DOT_DURATION
+ 243:morse_encoder.c **** #define LETTER_GAP_DURATION (3 * DOT_DURATION)
+ 244:morse_encoder.c **** #define WORD_GAP_DURATION (7 * DOT_DURATION)
+ 245:morse_encoder.c **** 
+ 246:morse_encoder.c **** 
+ 247:morse_encoder.c **** // --- Decoder-specific definitions ---
+ 248:morse_encoder.c **** #define BUTTON_DDR  DDRD
+ 249:morse_encoder.c **** #define BUTTON_PORT PORTD
+ 250:morse_encoder.c **** #define BUTTON_PIN  PD7
+ 251:morse_encoder.c **** #define BUTTON_PINREG  PIND
+ 252:morse_encoder.c **** 
+ 253:morse_encoder.c **** #define MAX_MORSE_LEN 8
+ 254:morse_encoder.c **** #define MAX_MSG_LEN 32
+ 255:morse_encoder.c **** 
+ 256:morse_encoder.c **** // Morse code lookup table for decoding
+ 257:morse_encoder.c **** typedef struct {
+ 258:morse_encoder.c ****     const char* code;
+ 259:morse_encoder.c ****     char letter;
+ 260:morse_encoder.c **** } MorseEntry;
+ 261:morse_encoder.c **** 
+ 262:morse_encoder.c **** const MorseEntry morseDecodeTable[] = {
+ 263:morse_encoder.c ****     { ".-", 'A' }, { "-...", 'B' }, { "-.-.", 'C' }, { "-..", 'D' }, { ".", 'E' },
+ 264:morse_encoder.c ****     { "..-.", 'F' }, { "--.", 'G' }, { "....", 'H' }, { "..", 'I' }, { ".---", 'J' },
+ 265:morse_encoder.c ****     { "-.-", 'K' }, { ".-..", 'L' }, { "--", 'M' }, { "-.", 'N' }, { "---", 'O' },
+ 266:morse_encoder.c ****     { ".--.", 'P' }, { "--.-", 'Q' }, { ".-.", 'R' }, { "...", 'S' }, { "-", 'T' },
+ 267:morse_encoder.c ****     { "..-", 'U' }, { "...-", 'V' }, { ".--", 'W' }, { "-..-", 'X' }, { "-.--", 'Y' },
+ 268:morse_encoder.c ****     { "--..", 'Z' },
+ 269:morse_encoder.c ****     { "-----", '0' }, { ".----", '1' }, { "..---", '2' }, { "...--", '3' }, { "....-", '4' },
+ 270:morse_encoder.c ****     { ".....", '5' }, { "-....", '6' }, { "--...", '7' }, { "---..", '8' }, { "----.", '9' },
+ 271:morse_encoder.c ****     { NULL, 0 }
+ 272:morse_encoder.c **** };
+ 273:morse_encoder.c **** 
+ 274:morse_encoder.c **** // Helper: decode Morse string to char
+ 275:morse_encoder.c **** char decode_morse(const char* code) {
+ 207               		.loc 1 275 0
+ 208               		.cfi_startproc
+ 209               	.LVL7:
+ 210 00ac EF92      		push r14
+ 211               	.LCFI2:
+ 212               		.cfi_def_cfa_offset 3
+ 213               		.cfi_offset 14, -2
+ 214 00ae FF92      		push r15
+ 215               	.LCFI3:
+ 216               		.cfi_def_cfa_offset 4
+ 217               		.cfi_offset 15, -3
+ 218 00b0 0F93      		push r16
+ 219               	.LCFI4:
+ 220               		.cfi_def_cfa_offset 5
+ 221               		.cfi_offset 16, -4
+ 222 00b2 1F93      		push r17
+ 223               	.LCFI5:
+ 224               		.cfi_def_cfa_offset 6
+ 225               		.cfi_offset 17, -5
+ 226 00b4 CF93      		push r28
+ 227               	.LCFI6:
+ 228               		.cfi_def_cfa_offset 7
+ 229               		.cfi_offset 28, -6
+ 230 00b6 DF93      		push r29
+ 231               	.LCFI7:
+ 232               		.cfi_def_cfa_offset 8
+ 233               		.cfi_offset 29, -7
+ 234               	/* prologue: function */
+ 235               	/* frame size = 0 */
+ 236               	/* stack size = 6 */
+ 237               	.L__stack_usage = 6
+ 238 00b8 7C01      		movw r14,r24
+ 239               	.LVL8:
+ 240 00ba 00E0      		ldi r16,lo8(morseDecodeTable)
+ 241 00bc 10E0      		ldi r17,hi8(morseDecodeTable)
+ 242               	.LBB2:
+ 276:morse_encoder.c ****     for (int i = 0; morseDecodeTable[i].code != NULL; i++) {
+ 243               		.loc 1 276 0
+ 244 00be D0E0      		ldi r29,0
+ 245 00c0 C0E0      		ldi r28,0
+ 246               	.LVL9:
+ 247               	.L17:
+ 248               		.loc 1 276 0 is_stmt 0 discriminator 1
+ 249 00c2 F801      		movw r30,r16
+ 250 00c4 8081      		ld r24,Z
+ 251 00c6 9181      		ldd r25,Z+1
+ 252 00c8 0097      		sbiw r24,0
+ 253 00ca 01F4      		brne .L20
+ 254               	.LBE2:
+ 277:morse_encoder.c ****         if (strcmp(morseDecodeTable[i].code, code) == 0) return morseDecodeTable[i].letter;
+ 278:morse_encoder.c ****     }
+ 279:morse_encoder.c ****     return '?';
+ 255               		.loc 1 279 0 is_stmt 1
+ 256 00cc 8FE3      		ldi r24,lo8(63)
+ 257 00ce 00C0      		rjmp .L16
+ 258               	.L20:
+ 259               	.LBB3:
+ 277:morse_encoder.c ****         if (strcmp(morseDecodeTable[i].code, code) == 0) return morseDecodeTable[i].letter;
+ 260               		.loc 1 277 0
+ 261 00d0 B701      		movw r22,r14
+ 262 00d2 0E94 0000 		call strcmp
+ 263               	.LVL10:
+ 264 00d6 0D5F      		subi r16,-3
+ 265 00d8 1F4F      		sbci r17,-1
+ 266 00da 892B      		or r24,r25
+ 267 00dc 01F4      		brne .L18
+ 277:morse_encoder.c ****         if (strcmp(morseDecodeTable[i].code, code) == 0) return morseDecodeTable[i].letter;
+ 268               		.loc 1 277 0 is_stmt 0 discriminator 1
+ 269 00de FE01      		movw r30,r28
+ 270 00e0 EE0F      		lsl r30
+ 271 00e2 FF1F      		rol r31
+ 272 00e4 EC0F      		add r30,r28
+ 273 00e6 FD1F      		adc r31,r29
+ 274 00e8 E050      		subi r30,lo8(-(morseDecodeTable))
+ 275 00ea F040      		sbci r31,hi8(-(morseDecodeTable))
+ 276 00ec 8281      		ldd r24,Z+2
+ 277               	.L16:
+ 278               	/* epilogue start */
+ 279               	.LBE3:
+ 280:morse_encoder.c **** }
+ 280               		.loc 1 280 0 is_stmt 1
+ 281 00ee DF91      		pop r29
+ 282 00f0 CF91      		pop r28
+ 283               	.LVL11:
+ 284 00f2 1F91      		pop r17
+ 285 00f4 0F91      		pop r16
+ 286 00f6 FF90      		pop r15
+ 287 00f8 EF90      		pop r14
+ 288               	.LVL12:
+ 289 00fa 0895      		ret
+ 290               	.LVL13:
+ 291               	.L18:
+ 292               	.LBB4:
+ 276:morse_encoder.c ****     for (int i = 0; morseDecodeTable[i].code != NULL; i++) {
+ 293               		.loc 1 276 0 discriminator 2
+ 294 00fc 2196      		adiw r28,1
+ 295               	.LVL14:
+ 296 00fe 00C0      		rjmp .L17
+ 297               	.LBE4:
+ 298               		.cfi_endproc
+ 299               	.LFE6:
+ 301               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 302               	.LC0:
+ 303 0000 2E2D 2E2D 		.string	".-.-."
+ 303      2E00 
+ 304               		.text
+ 305               	.global	is_AR
+ 307               	is_AR:
+ 308               	.LFB7:
+ 281:morse_encoder.c **** 
+ 282:morse_encoder.c **** // Helper: check for AR (.-.-.)
+ 283:morse_encoder.c **** uint8_t is_AR(const char* code) {
+ 309               		.loc 1 283 0
+ 310               		.cfi_startproc
+ 311               	.LVL15:
+ 312               	/* prologue: function */
+ 313               	/* frame size = 0 */
+ 314               	/* stack size = 0 */
+ 315               	.L__stack_usage = 0
+ 284:morse_encoder.c ****     return strcmp(code, ".-.-.") == 0;
+ 316               		.loc 1 284 0
+ 317 0100 60E0      		ldi r22,lo8(.LC0)
+ 318 0102 70E0      		ldi r23,hi8(.LC0)
+ 319 0104 0E94 0000 		call strcmp
+ 320               	.LVL16:
+ 321 0108 21E0      		ldi r18,lo8(1)
+ 322 010a 892B      		or r24,r25
+ 323 010c 01F0      		breq .L22
+ 324 010e 20E0      		ldi r18,0
+ 325               	.L22:
+ 285:morse_encoder.c **** }
+ 326               		.loc 1 285 0
+ 327 0110 822F      		mov r24,r18
+ 328               	/* epilogue start */
+ 329 0112 0895      		ret
+ 330               		.cfi_endproc
+ 331               	.LFE7:
+ 333               	.global	delay_ms
+ 335               	delay_ms:
+ 336               	.LFB8:
+ 286:morse_encoder.c **** 
+ 287:morse_encoder.c **** // Simple delay in ms (blocking, for echo)
+ 288:morse_encoder.c **** void delay_ms(uint16_t ms) {
+ 337               		.loc 1 288 0
+ 338               		.cfi_startproc
+ 339               	.LVL17:
+ 340 0114 CF93      		push r28
+ 341               	.LCFI8:
+ 342               		.cfi_def_cfa_offset 3
+ 343               		.cfi_offset 28, -2
+ 344 0116 DF93      		push r29
+ 345               	.LCFI9:
+ 346               		.cfi_def_cfa_offset 4
+ 347               		.cfi_offset 29, -3
+ 348 0118 00D0      		rcall .
+ 349               	.LCFI10:
+ 350               		.cfi_def_cfa_offset 6
+ 351 011a CDB7      		in r28,__SP_L__
+ 352 011c DEB7      		in r29,__SP_H__
+ 353               	.LCFI11:
+ 354               		.cfi_def_cfa_register 28
+ 355               	/* prologue: function */
+ 356               	/* frame size = 2 */
+ 357               	/* stack size = 4 */
+ 358               	.L__stack_usage = 4
+ 359               	.L27:
+ 289:morse_encoder.c ****     while (ms--) {
+ 360               		.loc 1 289 0
+ 361               	.LVL18:
+ 362 011e 0197      		sbiw r24,1
+ 363 0120 00F4      		brcc .L30
+ 364               	/* epilogue start */
+ 290:morse_encoder.c ****         for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) { asm volatile ("nop"); }
+ 291:morse_encoder.c ****     }
+ 292:morse_encoder.c **** }
+ 365               		.loc 1 292 0
+ 366 0122 0F90      		pop __tmp_reg__
+ 367 0124 0F90      		pop __tmp_reg__
+ 368 0126 DF91      		pop r29
+ 369 0128 CF91      		pop r28
+ 370 012a 0895      		ret
+ 371               	.L30:
+ 372               	.LBB5:
+ 290:morse_encoder.c ****         for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) { asm volatile ("nop"); }
+ 373               		.loc 1 290 0
+ 374 012c 1A82      		std Y+2,__zero_reg__
+ 375 012e 1982      		std Y+1,__zero_reg__
+ 376               	.L28:
+ 290:morse_encoder.c ****         for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) { asm volatile ("nop"); }
+ 377               		.loc 1 290 0 is_stmt 0 discriminator 1
+ 378 0130 2981      		ldd r18,Y+1
+ 379 0132 3A81      		ldd r19,Y+2
+ 380 0134 203D      		cpi r18,-48
+ 381 0136 3740      		sbci r19,7
+ 382 0138 00F4      		brsh .L27
+ 290:morse_encoder.c ****         for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8); d++) { asm volatile ("nop"); }
+ 383               		.loc 1 290 0 discriminator 3
+ 384               	/* #APP */
+ 385               	 ;  290 "morse_encoder.c" 1
+ 386 013a 0000      		nop
+ 387               	 ;  0 "" 2
+ 388               	/* #NOAPP */
+ 389 013c 2981      		ldd r18,Y+1
+ 390 013e 3A81      		ldd r19,Y+2
+ 391 0140 2F5F      		subi r18,-1
+ 392 0142 3F4F      		sbci r19,-1
+ 393 0144 3A83      		std Y+2,r19
+ 394 0146 2983      		std Y+1,r18
+ 395 0148 00C0      		rjmp .L28
+ 396               	.LBE5:
+ 397               		.cfi_endproc
+ 398               	.LFE8:
+ 400               		.section	.rodata.str1.1
+ 401               	.LC1:
+ 402 0006 4D6F 7273 		.string	"Morse Decoder"
+ 402      6520 4465 
+ 402      636F 6465 
+ 402      7200 
+ 403               	.LC2:
+ 404 0014 4465 636F 		.string	"Decoded:"
+ 404      6465 643A 
+ 404      00
+ 405               		.section	.text.startup,"ax",@progbits
+ 406               	.global	main
+ 408               	main:
+ 409               	.LFB9:
+ 293:morse_encoder.c **** 
+ 294:morse_encoder.c **** int main(void) {
+ 410               		.loc 1 294 0 is_stmt 1
+ 411               		.cfi_startproc
+ 412 0000 CF93      		push r28
+ 413               	.LCFI12:
+ 414               		.cfi_def_cfa_offset 3
+ 415               		.cfi_offset 28, -2
+ 416 0002 DF93      		push r29
+ 417               	.LCFI13:
+ 418               		.cfi_def_cfa_offset 4
+ 419               		.cfi_offset 29, -3
+ 420 0004 CDB7      		in r28,__SP_L__
+ 421 0006 DEB7      		in r29,__SP_H__
+ 422               	.LCFI14:
+ 423               		.cfi_def_cfa_register 28
+ 424 0008 AA97      		sbiw r28,42
+ 425               	.LCFI15:
+ 426               		.cfi_def_cfa_offset 46
+ 427 000a 0FB6      		in __tmp_reg__,__SREG__
+ 428 000c F894      		cli
+ 429 000e DEBF      		out __SP_H__,r29
+ 430 0010 0FBE      		out __SREG__,__tmp_reg__
+ 431 0012 CDBF      		out __SP_L__,r28
+ 432               	/* prologue: function */
+ 433               	/* frame size = 42 */
+ 434               	/* stack size = 44 */
+ 435               	.L__stack_usage = 44
+ 295:morse_encoder.c ****     // Set LED and buzzer pins as output
+ 296:morse_encoder.c ****     LED_DDR |= (1 << LED_PIN);
+ 436               		.loc 1 296 0
+ 437 0014 259A      		sbi 0x4,5
+ 297:morse_encoder.c ****     BUZZER_DDR |= (1 << BUZZER_PIN);
+ 438               		.loc 1 297 0
+ 439 0016 219A      		sbi 0x4,1
+ 298:morse_encoder.c ****     // Set button as input with pull-up
+ 299:morse_encoder.c ****     BUTTON_DDR &= ~(1 << BUTTON_PIN);
+ 440               		.loc 1 299 0
+ 441 0018 5798      		cbi 0xa,7
+ 300:morse_encoder.c ****     BUTTON_PORT |= (1 << BUTTON_PIN);
+ 442               		.loc 1 300 0
+ 443 001a 5F9A      		sbi 0xb,7
+ 301:morse_encoder.c **** 
+ 302:morse_encoder.c ****     // Initialize LCD
+ 303:morse_encoder.c ****     lcd_init(LCD_DISP_ON);
+ 444               		.loc 1 303 0
+ 445 001c 8CE0      		ldi r24,lo8(12)
+ 446 001e 0E94 0000 		call lcd_init
+ 447               	.LVL19:
+ 304:morse_encoder.c ****     lcd_clrscr();
+ 448               		.loc 1 304 0
+ 449 0022 0E94 0000 		call lcd_clrscr
+ 450               	.LVL20:
+ 305:morse_encoder.c ****     lcd_gotoxy(0,0);
+ 451               		.loc 1 305 0
+ 452 0026 60E0      		ldi r22,0
+ 453 0028 80E0      		ldi r24,0
+ 454 002a 0E94 0000 		call lcd_gotoxy
+ 455               	.LVL21:
+ 306:morse_encoder.c ****     lcd_puts("Morse Decoder");
+ 456               		.loc 1 306 0
+ 457 002e 80E0      		ldi r24,lo8(.LC1)
+ 458 0030 90E0      		ldi r25,hi8(.LC1)
+ 459 0032 0E94 0000 		call lcd_puts
+ 460               	.LVL22:
+ 307:morse_encoder.c **** 
+ 308:morse_encoder.c ****     char morse_buf[MAX_MORSE_LEN+1] = {0};
+ 461               		.loc 1 308 0
+ 462 0036 6E01      		movw r12,r28
+ 463 0038 22E2      		ldi r18,34
+ 464 003a C20E      		add r12,r18
+ 465 003c D11C      		adc r13,__zero_reg__
+ 466 003e 89E0      		ldi r24,lo8(9)
+ 467 0040 F601      		movw r30,r12
+ 468               		0:
+ 469 0042 1192      		st Z+,__zero_reg__
+ 470 0044 8A95      		dec r24
+ 471 0046 01F4      		brne 0b
+ 309:morse_encoder.c ****     char msg_buf[MAX_MSG_LEN+1] = {0};
+ 472               		.loc 1 309 0
+ 473 0048 CE01      		movw r24,r28
+ 474 004a 0196      		adiw r24,1
+ 475 004c 7C01      		movw r14,r24
+ 476 004e 81E2      		ldi r24,lo8(33)
+ 477 0050 F701      		movw r30,r14
+ 478               		0:
+ 479 0052 1192      		st Z+,__zero_reg__
+ 480 0054 8A95      		dec r24
+ 481 0056 01F4      		brne 0b
+ 482               	.LVL23:
+ 310:morse_encoder.c ****     uint8_t morse_idx = 0, msg_idx = 0;
+ 311:morse_encoder.c ****     uint8_t last_btn = 1, btn;
+ 483               		.loc 1 311 0
+ 484 0058 81E0      		ldi r24,lo8(1)
+ 310:morse_encoder.c ****     uint8_t morse_idx = 0, msg_idx = 0;
+ 485               		.loc 1 310 0
+ 486 005a 10E0      		ldi r17,0
+ 487 005c 00E0      		ldi r16,0
+ 312:morse_encoder.c ****     uint32_t press_time = 0, gap_time = 0;
+ 313:morse_encoder.c **** 
+ 314:morse_encoder.c ****     // Timing thresholds (ms)
+ 315:morse_encoder.c ****     const uint16_t DOT_THRESH = 200;      // <200ms = dot
+ 316:morse_encoder.c ****     const uint16_t LETTER_GAP = 600;      // >=600ms = letter gap
+ 317:morse_encoder.c ****     const uint16_t WORD_GAP = 1400;       // >=1400ms = word gap
+ 318:morse_encoder.c **** 
+ 319:morse_encoder.c ****     // Main loop
+ 320:morse_encoder.c ****     while (1) {
+ 321:morse_encoder.c ****         btn = (BUTTON_PINREG & (1 << BUTTON_PIN)) ? 1 : 0;
+ 322:morse_encoder.c ****         if (!btn && last_btn) { // Button pressed
+ 323:morse_encoder.c ****             // Echo LED/buzzer
+ 324:morse_encoder.c ****             LED_PORT |= (1 << LED_PIN);
+ 325:morse_encoder.c ****             BUZZER_PORT |= (1 << BUZZER_PIN);
+ 326:morse_encoder.c ****             // Wait for release and measure duration
+ 327:morse_encoder.c ****             uint16_t t = 0;
+ 328:morse_encoder.c ****             while (!(BUTTON_PINREG & (1 << BUTTON_PIN))) {
+ 329:morse_encoder.c ****                 delay_ms(1);
+ 330:morse_encoder.c ****                 t++;
+ 331:morse_encoder.c ****             }
+ 332:morse_encoder.c ****             press_time = t;
+ 333:morse_encoder.c ****             // End echo
+ 334:morse_encoder.c ****             LED_PORT &= ~(1 << LED_PIN);
+ 335:morse_encoder.c ****             BUZZER_PORT &= ~(1 << BUZZER_PIN);
+ 336:morse_encoder.c **** 
+ 337:morse_encoder.c ****             // Dot or dash
+ 338:morse_encoder.c ****             if (press_time < DOT_THRESH) {
+ 339:morse_encoder.c ****                 morse_buf[morse_idx++] = '.';
+ 340:morse_encoder.c ****             } else {
+ 341:morse_encoder.c ****                 morse_buf[morse_idx++] = '-';
+ 342:morse_encoder.c ****             }
+ 343:morse_encoder.c ****             morse_buf[morse_idx] = '\0';
+ 344:morse_encoder.c ****             gap_time = 0;
+ 345:morse_encoder.c ****         } else if (btn && !last_btn) { // Button released
+ 346:morse_encoder.c ****             // Start gap timing
+ 347:morse_encoder.c ****             gap_time = 0;
+ 348:morse_encoder.c ****             while ((BUTTON_PINREG & (1 << BUTTON_PIN)) && gap_time < WORD_GAP) {
+ 349:morse_encoder.c ****                 delay_ms(1);
+ 350:morse_encoder.c ****                 gap_time++;
+ 351:morse_encoder.c ****                 if (!(BUTTON_PINREG & (1 << BUTTON_PIN))) break;
+ 352:morse_encoder.c ****             }
+ 353:morse_encoder.c ****             // If gap is long enough, treat as letter/word
+ 354:morse_encoder.c ****             if (gap_time >= WORD_GAP) {
+ 355:morse_encoder.c ****                 if (morse_idx > 0) {
+ 356:morse_encoder.c ****                     char decoded = decode_morse(morse_buf);
+ 357:morse_encoder.c ****                     msg_buf[msg_idx++] = decoded;
+ 358:morse_encoder.c ****                     morse_idx = 0;
+ 359:morse_encoder.c ****                     morse_buf[0] = '\0';
+ 360:morse_encoder.c ****                 }
+ 361:morse_encoder.c ****                 msg_buf[msg_idx++] = ' ';
+ 488               		.loc 1 361 0
+ 489 005e 90E2      		ldi r25,lo8(32)
+ 490 0060 892E      		mov r8,r25
+ 491               	.LBB6:
+ 341:morse_encoder.c ****             }
+ 492               		.loc 1 341 0
+ 493 0062 2DE2      		ldi r18,lo8(45)
+ 494 0064 322E      		mov r3,r18
+ 339:morse_encoder.c ****             } else {
+ 495               		.loc 1 339 0
+ 496 0066 3EE2      		ldi r19,lo8(46)
+ 497 0068 232E      		mov r2,r19
+ 498               	.LVL24:
+ 499               	.L32:
+ 500               	.LBE6:
+ 321:morse_encoder.c ****         if (!btn && last_btn) { // Button pressed
+ 501               		.loc 1 321 0
+ 502 006a 99B1      		in r25,0x9
+ 321:morse_encoder.c ****         if (!btn && last_btn) { // Button pressed
+ 503               		.loc 1 321 0
+ 504 006c 992E      		mov r9,r25
+ 505 006e 991C      		rol r9
+ 506 0070 9924      		clr r9
+ 507 0072 991C      		rol r9
+ 508               	.LVL25:
+ 322:morse_encoder.c ****             // Echo LED/buzzer
+ 509               		.loc 1 322 0
+ 510 0074 97FD      		sbrc r25,7
+ 511 0076 00C0      		rjmp .L33
+ 322:morse_encoder.c ****             // Echo LED/buzzer
+ 512               		.loc 1 322 0 is_stmt 0 discriminator 1
+ 513 0078 8823      		tst r24
+ 514 007a 01F0      		breq .L34
+ 515               	.LBB7:
+ 324:morse_encoder.c ****             BUZZER_PORT |= (1 << BUZZER_PIN);
+ 516               		.loc 1 324 0 is_stmt 1
+ 517 007c 2D9A      		sbi 0x5,5
+ 325:morse_encoder.c ****             // Wait for release and measure duration
+ 518               		.loc 1 325 0
+ 519 007e 299A      		sbi 0x5,1
+ 520               	.LVL26:
+ 327:morse_encoder.c ****             while (!(BUTTON_PINREG & (1 << BUTTON_PIN))) {
+ 521               		.loc 1 327 0
+ 522 0080 B12C      		mov r11,__zero_reg__
+ 523 0082 A12C      		mov r10,__zero_reg__
+ 524               	.LVL27:
+ 525               	.L35:
+ 328:morse_encoder.c ****                 delay_ms(1);
+ 526               		.loc 1 328 0
+ 527 0084 4F9B      		sbis 0x9,7
+ 528 0086 00C0      		rjmp .L36
+ 334:morse_encoder.c ****             BUZZER_PORT &= ~(1 << BUZZER_PIN);
+ 529               		.loc 1 334 0
+ 530 0088 2D98      		cbi 0x5,5
+ 335:morse_encoder.c **** 
+ 531               		.loc 1 335 0
+ 532 008a 2998      		cbi 0x5,1
+ 533 008c 802F      		mov r24,r16
+ 534 008e 90E0      		ldi r25,0
+ 535 0090 0F5F      		subi r16,lo8(-(1))
+ 536               	.LVL28:
+ 339:morse_encoder.c ****             } else {
+ 537               		.loc 1 339 0
+ 538 0092 8C0D      		add r24,r12
+ 539 0094 9D1D      		adc r25,r13
+ 540               	.LVL29:
+ 541 0096 FC01      		movw r30,r24
+ 338:morse_encoder.c ****                 morse_buf[morse_idx++] = '.';
+ 542               		.loc 1 338 0
+ 543 0098 28EC      		ldi r18,-56
+ 544 009a A216      		cp r10,r18
+ 545 009c B104      		cpc r11,__zero_reg__
+ 546 009e 00F4      		brsh .L37
+ 547               	.LVL30:
+ 339:morse_encoder.c ****             } else {
+ 548               		.loc 1 339 0
+ 549 00a0 2082      		st Z,r2
+ 550               	.LVL31:
+ 551               	.L38:
+ 343:morse_encoder.c ****             gap_time = 0;
+ 552               		.loc 1 343 0
+ 553 00a2 F601      		movw r30,r12
+ 554 00a4 E00F      		add r30,r16
+ 555 00a6 F11D      		adc r31,__zero_reg__
+ 556 00a8 1082      		st Z,__zero_reg__
+ 557               	.LVL32:
+ 558               	.L34:
+ 559               	.LBE7:
+ 362:morse_encoder.c ****                 msg_buf[msg_idx] = '\0';
+ 363:morse_encoder.c ****             } else if (gap_time >= LETTER_GAP) {
+ 364:morse_encoder.c ****                 if (morse_idx > 0) {
+ 365:morse_encoder.c ****                     char decoded = decode_morse(morse_buf);
+ 366:morse_encoder.c ****                     msg_buf[msg_idx++] = decoded;
+ 367:morse_encoder.c ****                     morse_idx = 0;
+ 368:morse_encoder.c ****                     morse_buf[0] = '\0';
+ 369:morse_encoder.c ****                 }
+ 370:morse_encoder.c ****                 msg_buf[msg_idx] = '\0';
+ 371:morse_encoder.c ****             }
+ 372:morse_encoder.c ****             // Check for AR (.-.-.)
+ 373:morse_encoder.c ****             if (is_AR(morse_buf)) {
+ 374:morse_encoder.c ****                 lcd_clrscr();
+ 375:morse_encoder.c ****                 lcd_gotoxy(0,0);
+ 376:morse_encoder.c ****                 lcd_puts("Decoded:");
+ 377:morse_encoder.c ****                 lcd_gotoxy(1,0);
+ 378:morse_encoder.c ****                 lcd_puts(msg_buf);
+ 379:morse_encoder.c ****                 morse_idx = 0; msg_idx = 0;
+ 560               		.loc 1 379 0
+ 561 00aa 892D      		mov r24,r9
+ 562 00ac 00C0      		rjmp .L32
+ 563               	.LVL33:
+ 564               	.L36:
+ 565               	.LBB8:
+ 329:morse_encoder.c ****                 t++;
+ 566               		.loc 1 329 0
+ 567 00ae 81E0      		ldi r24,lo8(1)
+ 568 00b0 90E0      		ldi r25,0
+ 569 00b2 0E94 0000 		call delay_ms
+ 570               	.LVL34:
+ 330:morse_encoder.c ****             }
+ 571               		.loc 1 330 0
+ 572 00b6 FFEF      		ldi r31,-1
+ 573 00b8 AF1A      		sub r10,r31
+ 574 00ba BF0A      		sbc r11,r31
+ 575               	.LVL35:
+ 576 00bc 00C0      		rjmp .L35
+ 577               	.LVL36:
+ 578               	.L37:
+ 341:morse_encoder.c ****             }
+ 579               		.loc 1 341 0
+ 580 00be 3082      		st Z,r3
+ 581 00c0 00C0      		rjmp .L38
+ 582               	.LVL37:
+ 583               	.L33:
+ 584               	.LBE8:
+ 345:morse_encoder.c ****             // Start gap timing
+ 585               		.loc 1 345 0 discriminator 1
+ 586 00c2 8111      		cpse r24,__zero_reg__
+ 587 00c4 00C0      		rjmp .L34
+ 347:morse_encoder.c ****             while ((BUTTON_PINREG & (1 << BUTTON_PIN)) && gap_time < WORD_GAP) {
+ 588               		.loc 1 347 0
+ 589 00c6 412C      		mov r4,__zero_reg__
+ 590 00c8 512C      		mov r5,__zero_reg__
+ 591 00ca 3201      		movw r6,r4
+ 592               	.LVL38:
+ 593               	.L39:
+ 348:morse_encoder.c ****                 delay_ms(1);
+ 594               		.loc 1 348 0
+ 595 00cc 4F9B      		sbis 0x9,7
+ 596 00ce 00C0      		rjmp .L40
+ 348:morse_encoder.c ****                 delay_ms(1);
+ 597               		.loc 1 348 0 discriminator 1
+ 598 00d0 28E7      		ldi r18,120
+ 599 00d2 4216      		cp r4,r18
+ 600 00d4 25E0      		ldi r18,5
+ 601 00d6 5206      		cpc r5,r18
+ 602 00d8 6104      		cpc r6,__zero_reg__
+ 603 00da 7104      		cpc r7,__zero_reg__
+ 604 00dc 01F4      		brne .L41
+ 605               	.L44:
+ 606               	.LVL39:
+ 355:morse_encoder.c ****                     char decoded = decode_morse(morse_buf);
+ 607               		.loc 1 355 0
+ 608 00de 0111      		cpse r16,__zero_reg__
+ 609 00e0 00C0      		rjmp .L42
+ 610               	.LVL40:
+ 611               	.L43:
+ 361:morse_encoder.c ****                 msg_buf[msg_idx] = '\0';
+ 612               		.loc 1 361 0
+ 613 00e2 81E0      		ldi r24,lo8(1)
+ 614 00e4 810F      		add r24,r17
+ 615               	.LVL41:
+ 616 00e6 F701      		movw r30,r14
+ 617 00e8 E10F      		add r30,r17
+ 618 00ea F11D      		adc r31,__zero_reg__
+ 619 00ec 8082      		st Z,r8
+ 362:morse_encoder.c ****             } else if (gap_time >= LETTER_GAP) {
+ 620               		.loc 1 362 0
+ 621 00ee F701      		movw r30,r14
+ 622 00f0 E80F      		add r30,r24
+ 623 00f2 F11D      		adc r31,__zero_reg__
+ 624 00f4 1082      		st Z,__zero_reg__
+ 361:morse_encoder.c ****                 msg_buf[msg_idx] = '\0';
+ 625               		.loc 1 361 0
+ 626 00f6 182F      		mov r17,r24
+ 627               	.LVL42:
+ 628               	.L62:
+ 370:morse_encoder.c ****             }
+ 629               		.loc 1 370 0
+ 630 00f8 00E0      		ldi r16,0
+ 631               	.LVL43:
+ 632               	.L46:
+ 373:morse_encoder.c ****                 lcd_clrscr();
+ 633               		.loc 1 373 0
+ 634 00fa C601      		movw r24,r12
+ 635 00fc 0E94 0000 		call is_AR
+ 636               	.LVL44:
+ 637 0100 8823      		tst r24
+ 638 0102 01F0      		breq .L34
+ 374:morse_encoder.c ****                 lcd_gotoxy(0,0);
+ 639               		.loc 1 374 0
+ 640 0104 0E94 0000 		call lcd_clrscr
+ 641               	.LVL45:
+ 375:morse_encoder.c ****                 lcd_puts("Decoded:");
+ 642               		.loc 1 375 0
+ 643 0108 60E0      		ldi r22,0
+ 644 010a 80E0      		ldi r24,0
+ 645 010c 0E94 0000 		call lcd_gotoxy
+ 646               	.LVL46:
+ 376:morse_encoder.c ****                 lcd_gotoxy(1,0);
+ 647               		.loc 1 376 0
+ 648 0110 80E0      		ldi r24,lo8(.LC2)
+ 649 0112 90E0      		ldi r25,hi8(.LC2)
+ 650 0114 0E94 0000 		call lcd_puts
+ 651               	.LVL47:
+ 377:morse_encoder.c ****                 lcd_puts(msg_buf);
+ 652               		.loc 1 377 0
+ 653 0118 60E0      		ldi r22,0
+ 654 011a 81E0      		ldi r24,lo8(1)
+ 655 011c 0E94 0000 		call lcd_gotoxy
+ 656               	.LVL48:
+ 378:morse_encoder.c ****                 morse_idx = 0; msg_idx = 0;
+ 657               		.loc 1 378 0
+ 658 0120 C701      		movw r24,r14
+ 659 0122 0E94 0000 		call lcd_puts
+ 660               	.LVL49:
+ 380:morse_encoder.c ****                 morse_buf[0] = '\0'; msg_buf[0] = '\0';
+ 661               		.loc 1 380 0
+ 662 0126 1AA2      		std Y+34,__zero_reg__
+ 663 0128 1982      		std Y+1,__zero_reg__
+ 381:morse_encoder.c ****                 delay_ms(2000);
+ 664               		.loc 1 381 0
+ 665 012a 80ED      		ldi r24,lo8(-48)
+ 666 012c 97E0      		ldi r25,lo8(7)
+ 667 012e 0E94 0000 		call delay_ms
+ 668               	.LVL50:
+ 382:morse_encoder.c ****                 lcd_clrscr();
+ 669               		.loc 1 382 0
+ 670 0132 0E94 0000 		call lcd_clrscr
+ 671               	.LVL51:
+ 383:morse_encoder.c ****                 lcd_gotoxy(0,0);
+ 672               		.loc 1 383 0
+ 673 0136 60E0      		ldi r22,0
+ 674 0138 80E0      		ldi r24,0
+ 675 013a 0E94 0000 		call lcd_gotoxy
+ 676               	.LVL52:
+ 384:morse_encoder.c ****                 lcd_puts("Morse Decoder");
+ 677               		.loc 1 384 0
+ 678 013e 80E0      		ldi r24,lo8(.LC1)
+ 679 0140 90E0      		ldi r25,hi8(.LC1)
+ 680 0142 0E94 0000 		call lcd_puts
+ 681               	.LVL53:
+ 379:morse_encoder.c ****                 morse_buf[0] = '\0'; msg_buf[0] = '\0';
+ 682               		.loc 1 379 0
+ 683 0146 10E0      		ldi r17,0
+ 684 0148 00E0      		ldi r16,0
+ 685 014a 00C0      		rjmp .L34
+ 686               	.LVL54:
+ 687               	.L41:
+ 349:morse_encoder.c ****                 gap_time++;
+ 688               		.loc 1 349 0
+ 689 014c 81E0      		ldi r24,lo8(1)
+ 690 014e 90E0      		ldi r25,0
+ 691 0150 0E94 0000 		call delay_ms
+ 692               	.LVL55:
+ 350:morse_encoder.c ****                 if (!(BUTTON_PINREG & (1 << BUTTON_PIN))) break;
+ 693               		.loc 1 350 0
+ 694 0154 FFEF      		ldi r31,-1
+ 695 0156 4F1A      		sub r4,r31
+ 696 0158 5F0A      		sbc r5,r31
+ 697 015a 6F0A      		sbc r6,r31
+ 698 015c 7F0A      		sbc r7,r31
+ 699               	.LVL56:
+ 351:morse_encoder.c ****             }
+ 700               		.loc 1 351 0
+ 701 015e 4F99      		sbic 0x9,7
+ 702 0160 00C0      		rjmp .L39
+ 703               	.L40:
+ 354:morse_encoder.c ****                 if (morse_idx > 0) {
+ 704               		.loc 1 354 0
+ 705 0162 88E7      		ldi r24,120
+ 706 0164 4816      		cp r4,r24
+ 707 0166 85E0      		ldi r24,5
+ 708 0168 5806      		cpc r5,r24
+ 709 016a 6104      		cpc r6,__zero_reg__
+ 710 016c 7104      		cpc r7,__zero_reg__
+ 711 016e 01F4      		brne .+2
+ 712 0170 00C0      		rjmp .L44
+ 363:morse_encoder.c ****                 if (morse_idx > 0) {
+ 713               		.loc 1 363 0
+ 714 0172 98E5      		ldi r25,88
+ 715 0174 4916      		cp r4,r25
+ 716 0176 92E0      		ldi r25,2
+ 717 0178 5906      		cpc r5,r25
+ 718 017a 6104      		cpc r6,__zero_reg__
+ 719 017c 7104      		cpc r7,__zero_reg__
+ 720 017e 00F4      		brsh .+2
+ 721 0180 00C0      		rjmp .L46
+ 364:morse_encoder.c ****                     char decoded = decode_morse(morse_buf);
+ 722               		.loc 1 364 0
+ 723 0182 0023      		tst r16
+ 724 0184 01F0      		breq .L47
+ 725               	.LBB9:
+ 365:morse_encoder.c ****                     msg_buf[msg_idx++] = decoded;
+ 726               		.loc 1 365 0
+ 727 0186 C601      		movw r24,r12
+ 728 0188 0E94 0000 		call decode_morse
+ 729               	.LVL57:
+ 366:morse_encoder.c ****                     morse_idx = 0;
+ 730               		.loc 1 366 0
+ 731 018c F701      		movw r30,r14
+ 732 018e E10F      		add r30,r17
+ 733 0190 F11D      		adc r31,__zero_reg__
+ 734 0192 8083      		st Z,r24
+ 735               	.LVL58:
+ 368:morse_encoder.c ****                 }
+ 736               		.loc 1 368 0
+ 737 0194 1AA2      		std Y+34,__zero_reg__
+ 366:morse_encoder.c ****                     morse_idx = 0;
+ 738               		.loc 1 366 0
+ 739 0196 1F5F      		subi r17,lo8(-(1))
+ 740               	.LVL59:
+ 741               	.L47:
+ 742               	.LBE9:
+ 370:morse_encoder.c ****             }
+ 743               		.loc 1 370 0
+ 744 0198 F701      		movw r30,r14
+ 745 019a E10F      		add r30,r17
+ 746 019c F11D      		adc r31,__zero_reg__
+ 747 019e 1082      		st Z,__zero_reg__
+ 748 01a0 00C0      		rjmp .L62
+ 749               	.LVL60:
+ 750               	.L42:
+ 751 01a2 01E0      		ldi r16,lo8(1)
+ 752               	.LVL61:
+ 753 01a4 010F      		add r16,r17
+ 754               	.LBB10:
+ 356:morse_encoder.c ****                     msg_buf[msg_idx++] = decoded;
+ 755               		.loc 1 356 0
+ 756 01a6 C601      		movw r24,r12
+ 757 01a8 0E94 0000 		call decode_morse
+ 758               	.LVL62:
+ 357:morse_encoder.c ****                     morse_idx = 0;
+ 759               		.loc 1 357 0
+ 760 01ac F701      		movw r30,r14
+ 761 01ae E10F      		add r30,r17
+ 762 01b0 F11D      		adc r31,__zero_reg__
+ 763 01b2 8083      		st Z,r24
+ 764               	.LVL63:
+ 359:morse_encoder.c ****                 }
+ 765               		.loc 1 359 0
+ 766 01b4 1AA2      		std Y+34,__zero_reg__
+ 357:morse_encoder.c ****                     morse_idx = 0;
+ 767               		.loc 1 357 0
+ 768 01b6 102F      		mov r17,r16
+ 769 01b8 00C0      		rjmp .L43
+ 770               	.LBE10:
+ 771               		.cfi_endproc
+ 772               	.LFE9:
+ 774               	.global	morseDecodeTable
+ 775               		.section	.rodata.str1.1
+ 776               	.LC3:
+ 777 001d 2E2D 00   		.string	".-"
+ 778               	.LC4:
+ 779 0020 2D2E 2E2E 		.string	"-..."
+ 779      00
+ 780               	.LC5:
+ 781 0025 2D2E 2D2E 		.string	"-.-."
+ 781      00
+ 782               	.LC6:
+ 783 002a 2D2E 2E00 		.string	"-.."
+ 784               	.LC7:
+ 785 002e 2E00      		.string	"."
+ 786               	.LC8:
+ 787 0030 2E2E 2D2E 		.string	"..-."
+ 787      00
+ 788               	.LC9:
+ 789 0035 2D2D 2E00 		.string	"--."
+ 790               	.LC10:
+ 791 0039 2E2E 2E2E 		.string	"...."
+ 791      00
+ 792               	.LC11:
+ 793 003e 2E2E 00   		.string	".."
+ 794               	.LC12:
+ 795 0041 2E2D 2D2D 		.string	".---"
+ 795      00
+ 796               	.LC13:
+ 797 0046 2D2E 2D00 		.string	"-.-"
+ 798               	.LC14:
+ 799 004a 2E2D 2E2E 		.string	".-.."
+ 799      00
+ 800               	.LC15:
+ 801 004f 2D2D 00   		.string	"--"
+ 802               	.LC16:
+ 803 0052 2D2E 00   		.string	"-."
+ 804               	.LC17:
+ 805 0055 2D2D 2D00 		.string	"---"
+ 806               	.LC18:
+ 807 0059 2E2D 2D2E 		.string	".--."
+ 807      00
+ 808               	.LC19:
+ 809 005e 2D2D 2E2D 		.string	"--.-"
+ 809      00
+ 810               	.LC20:
+ 811 0063 2E2D 2E00 		.string	".-."
+ 812               	.LC21:
+ 813 0067 2E2E 2E00 		.string	"..."
+ 814               	.LC22:
+ 815 006b 2D00      		.string	"-"
+ 816               	.LC23:
+ 817 006d 2E2E 2D00 		.string	"..-"
+ 818               	.LC24:
+ 819 0071 2E2E 2E2D 		.string	"...-"
+ 819      00
+ 820               	.LC25:
+ 821 0076 2E2D 2D00 		.string	".--"
+ 822               	.LC26:
+ 823 007a 2D2E 2E2D 		.string	"-..-"
+ 823      00
+ 824               	.LC27:
+ 825 007f 2D2E 2D2D 		.string	"-.--"
+ 825      00
+ 826               	.LC28:
+ 827 0084 2D2D 2E2E 		.string	"--.."
+ 827      00
+ 828               	.LC29:
+ 829 0089 2D2D 2D2D 		.string	"-----"
+ 829      2D00 
+ 830               	.LC30:
+ 831 008f 2E2D 2D2D 		.string	".----"
+ 831      2D00 
+ 832               	.LC31:
+ 833 0095 2E2E 2D2D 		.string	"..---"
+ 833      2D00 
+ 834               	.LC32:
+ 835 009b 2E2E 2E2D 		.string	"...--"
+ 835      2D00 
+ 836               	.LC33:
+ 837 00a1 2E2E 2E2E 		.string	"....-"
+ 837      2D00 
+ 838               	.LC34:
+ 839 00a7 2E2E 2E2E 		.string	"....."
+ 839      2E00 
+ 840               	.LC35:
+ 841 00ad 2D2E 2E2E 		.string	"-...."
+ 841      2E00 
+ 842               	.LC36:
+ 843 00b3 2D2D 2E2E 		.string	"--..."
+ 843      2E00 
+ 844               	.LC37:
+ 845 00b9 2D2D 2D2E 		.string	"---.."
+ 845      2E00 
+ 846               	.LC38:
+ 847 00bf 2D2D 2D2D 		.string	"----."
+ 847      2E00 
+ 848               		.section	.rodata
+ 851               	morseDecodeTable:
+ 852 0000 0000      		.word	.LC3
+ 853 0002 41        		.byte	65
+ 854 0003 0000      		.word	.LC4
+ 855 0005 42        		.byte	66
+ 856 0006 0000      		.word	.LC5
+ 857 0008 43        		.byte	67
+ 858 0009 0000      		.word	.LC6
+ 859 000b 44        		.byte	68
+ 860 000c 0000      		.word	.LC7
+ 861 000e 45        		.byte	69
+ 862 000f 0000      		.word	.LC8
+ 863 0011 46        		.byte	70
+ 864 0012 0000      		.word	.LC9
+ 865 0014 47        		.byte	71
+ 866 0015 0000      		.word	.LC10
+ 867 0017 48        		.byte	72
+ 868 0018 0000      		.word	.LC11
+ 869 001a 49        		.byte	73
+ 870 001b 0000      		.word	.LC12
+ 871 001d 4A        		.byte	74
+ 872 001e 0000      		.word	.LC13
+ 873 0020 4B        		.byte	75
+ 874 0021 0000      		.word	.LC14
+ 875 0023 4C        		.byte	76
+ 876 0024 0000      		.word	.LC15
+ 877 0026 4D        		.byte	77
+ 878 0027 0000      		.word	.LC16
+ 879 0029 4E        		.byte	78
+ 880 002a 0000      		.word	.LC17
+ 881 002c 4F        		.byte	79
+ 882 002d 0000      		.word	.LC18
+ 883 002f 50        		.byte	80
+ 884 0030 0000      		.word	.LC19
+ 885 0032 51        		.byte	81
+ 886 0033 0000      		.word	.LC20
+ 887 0035 52        		.byte	82
+ 888 0036 0000      		.word	.LC21
+ 889 0038 53        		.byte	83
+ 890 0039 0000      		.word	.LC22
+ 891 003b 54        		.byte	84
+ 892 003c 0000      		.word	.LC23
+ 893 003e 55        		.byte	85
+ 894 003f 0000      		.word	.LC24
+ 895 0041 56        		.byte	86
+ 896 0042 0000      		.word	.LC25
+ 897 0044 57        		.byte	87
+ 898 0045 0000      		.word	.LC26
+ 899 0047 58        		.byte	88
+ 900 0048 0000      		.word	.LC27
+ 901 004a 59        		.byte	89
+ 902 004b 0000      		.word	.LC28
+ 903 004d 5A        		.byte	90
+ 904 004e 0000      		.word	.LC29
+ 905 0050 30        		.byte	48
+ 906 0051 0000      		.word	.LC30
+ 907 0053 31        		.byte	49
+ 908 0054 0000      		.word	.LC31
+ 909 0056 32        		.byte	50
+ 910 0057 0000      		.word	.LC32
+ 911 0059 33        		.byte	51
+ 912 005a 0000      		.word	.LC33
+ 913 005c 34        		.byte	52
+ 914 005d 0000      		.word	.LC34
+ 915 005f 35        		.byte	53
+ 916 0060 0000      		.word	.LC35
+ 917 0062 36        		.byte	54
+ 918 0063 0000      		.word	.LC36
+ 919 0065 37        		.byte	55
+ 920 0066 0000      		.word	.LC37
+ 921 0068 38        		.byte	56
+ 922 0069 0000      		.word	.LC38
+ 923 006b 39        		.byte	57
+ 924 006c 0000      		.word	0
+ 925 006e 00        		.byte	0
+ 926               	.global	morseCodeMap
+ 927               		.data
+ 930               	morseCodeMap:
+ 931 0000 0000      		.word	.LC3
+ 932 0002 0000      		.word	.LC4
+ 933 0004 0000      		.word	.LC5
+ 934 0006 0000      		.word	.LC6
+ 935 0008 0000      		.word	.LC7
+ 936 000a 0000      		.word	.LC8
+ 937 000c 0000      		.word	.LC9
+ 938 000e 0000      		.word	.LC10
+ 939 0010 0000      		.word	.LC11
+ 940 0012 0000      		.word	.LC12
+ 941 0014 0000      		.word	.LC13
+ 942 0016 0000      		.word	.LC14
+ 943 0018 0000      		.word	.LC15
+ 944 001a 0000      		.word	.LC16
+ 945 001c 0000      		.word	.LC17
+ 946 001e 0000      		.word	.LC18
+ 947 0020 0000      		.word	.LC19
+ 948 0022 0000      		.word	.LC20
+ 949 0024 0000      		.word	.LC21
+ 950 0026 0000      		.word	.LC22
+ 951 0028 0000      		.word	.LC23
+ 952 002a 0000      		.word	.LC24
+ 953 002c 0000      		.word	.LC25
+ 954 002e 0000      		.word	.LC26
+ 955 0030 0000      		.word	.LC27
+ 956 0032 0000      		.word	.LC28
+ 957 0034 0000      		.word	.LC29
+ 958 0036 0000      		.word	.LC30
+ 959 0038 0000      		.word	.LC31
+ 960 003a 0000      		.word	.LC32
+ 961 003c 0000      		.word	.LC33
+ 962 003e 0000      		.word	.LC34
+ 963 0040 0000      		.word	.LC35
+ 964 0042 0000      		.word	.LC36
+ 965 0044 0000      		.word	.LC37
+ 966 0046 0000      		.word	.LC38
+ 967               		.text
+ 968               	.Letext0:
+ 969               		.file 2 "/usr/lib/avr/include/stdint.h"
+ 970               		.file 3 "lcd.h"
+ 971               		.file 4 "/usr/lib/avr/include/string.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 morse_encoder.c
+     morse_encoder.s:2      *ABS*:000000000000003e __SP_H__
+     morse_encoder.s:3      *ABS*:000000000000003d __SP_L__
+     morse_encoder.s:4      *ABS*:000000000000003f __SREG__
+     morse_encoder.s:5      *ABS*:0000000000000000 __tmp_reg__
+     morse_encoder.s:6      *ABS*:0000000000000001 __zero_reg__
+     morse_encoder.s:12     .text:0000000000000000 usart_init
+     morse_encoder.s:74     .text:000000000000004a usart_send
+     morse_encoder.s:99     .text:0000000000000058 usart_receive
+     morse_encoder.s:123    .text:0000000000000066 usart_send_string
+     morse_encoder.s:165    .text:000000000000007e delay_timer
+     morse_encoder.s:205    .text:00000000000000ac decode_morse
+     morse_encoder.s:851    .rodata:0000000000000000 morseDecodeTable
+     morse_encoder.s:307    .text:0000000000000100 is_AR
+     morse_encoder.s:335    .text:0000000000000114 delay_ms
+     morse_encoder.s:408    .text.startup:0000000000000000 main
+     morse_encoder.s:930    .data:0000000000000000 morseCodeMap
+
+UNDEFINED SYMBOLS
+strcmp
+lcd_init
+lcd_clrscr
+lcd_gotoxy
+lcd_puts
+__do_copy_data
