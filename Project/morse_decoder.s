@@ -204,7 +204,7 @@ delay_timer:
 	.type	delay_100ms_units, @function
 delay_100ms_units:
 .LFB6:
-	.loc 1 250 0
+	.loc 1 256 0
 	.cfi_startproc
 .LVL7:
 	push r28
@@ -222,16 +222,16 @@ delay_100ms_units:
 	mov r29,r24
 .LVL8:
 .LBB2:
-	.loc 1 251 0
+	.loc 1 257 0
 	ldi r28,0
 .LVL9:
 .L17:
-	.loc 1 251 0 is_stmt 0 discriminator 1
+	.loc 1 257 0 is_stmt 0 discriminator 1
 	cpse r28,r29
 	rjmp .L18
 /* epilogue start */
 .LBE2:
-	.loc 1 254 0 is_stmt 1
+	.loc 1 260 0 is_stmt 1
 	pop r29
 .LVL10:
 	pop r28
@@ -240,10 +240,10 @@ delay_100ms_units:
 .LVL12:
 .L18:
 .LBB3:
-	.loc 1 252 0 discriminator 3
+	.loc 1 258 0 discriminator 3
 	call delay_timer
 .LVL13:
-	.loc 1 251 0 discriminator 3
+	.loc 1 257 0 discriminator 3
 	subi r28,lo8(-(1))
 .LVL14:
 	rjmp .L17
@@ -255,7 +255,7 @@ delay_100ms_units:
 	.type	signal_morse, @function
 signal_morse:
 .LFB7:
-	.loc 1 257 0
+	.loc 1 263 0
 	.cfi_startproc
 .LVL15:
 	push r16
@@ -289,7 +289,7 @@ signal_morse:
 	movw r16,r24
 .LVL16:
 .L20:
-	.loc 1 259 0
+	.loc 1 265 0
 	movw r30,r16
 	ld r24,Z+
 	movw r16,r30
@@ -297,7 +297,7 @@ signal_morse:
 	cpse r24,__zero_reg__
 	rjmp .L28
 /* epilogue start */
-	.loc 1 287 0
+	.loc 1 293 0
 	pop __tmp_reg__
 	pop __tmp_reg__
 	pop __tmp_reg__
@@ -311,9 +311,9 @@ signal_morse:
 .LVL19:
 .L28:
 .LBB4:
-	.loc 1 261 0
+	.loc 1 267 0
 	sbi 0x5,5
-	.loc 1 264 0
+	.loc 1 270 0
 	movw r30,r16
 	sbiw r30,1
 	ld r24,Z
@@ -325,57 +325,57 @@ signal_morse:
 	ldi r21,0
 .L21:
 .LVL20:
-	.loc 1 265 0 discriminator 4
+	.loc 1 271 0 discriminator 4
 	ldi r25,0
 	ldi r24,0
 .LVL21:
 .L26:
-	.loc 1 268 0
+	.loc 1 274 0
 	sbi 0x5,1
 .LBB5:
-	.loc 1 270 0
+	.loc 1 276 0
 	std Y+4,__zero_reg__
 	std Y+3,__zero_reg__
 .L22:
-	.loc 1 270 0 is_stmt 0 discriminator 1
+	.loc 1 276 0 is_stmt 0 discriminator 1
 	ldd r18,Y+3
 	ldd r19,Y+4
 	cpi r18,-24
 	sbci r19,3
 	brlo .L23
 .LBE5:
-	.loc 1 271 0 is_stmt 1
+	.loc 1 277 0 is_stmt 1
 	cbi 0x5,1
 .LBB6:
-	.loc 1 273 0
+	.loc 1 279 0
 	std Y+2,__zero_reg__
 	std Y+1,__zero_reg__
 .L24:
-	.loc 1 273 0 is_stmt 0 discriminator 1
+	.loc 1 279 0 is_stmt 0 discriminator 1
 	ldd r18,Y+1
 	ldd r19,Y+2
 	cpi r18,-24
 	sbci r19,3
 	brlo .L25
 .LBE6:
-	.loc 1 274 0 is_stmt 1
+	.loc 1 280 0 is_stmt 1
 	adiw r24,1
 .LVL22:
-	.loc 1 266 0
+	.loc 1 272 0
 	cp r20,r24
 	cpc r21,r25
 	brne .L26
-	.loc 1 278 0
+	.loc 1 284 0
 	cbi 0x5,5
-	.loc 1 279 0
+	.loc 1 285 0
 	cbi 0x5,1
-	.loc 1 282 0
+	.loc 1 288 0
 	movw r30,r16
 	ld r24,Z
 .LVL23:
 	tst r24
 	breq .L20
-	.loc 1 283 0
+	.loc 1 289 0
 	ldi r24,lo8(2)
 	call delay_100ms_units
 .LVL24:
@@ -383,9 +383,9 @@ signal_morse:
 .LVL25:
 .L23:
 .LBB7:
-	.loc 1 270 0 discriminator 3
+	.loc 1 276 0 discriminator 3
 /* #APP */
- ;  270 "morse_decoder.c" 1
+ ;  276 "morse_decoder.c" 1
 	nop
  ;  0 "" 2
 /* #NOAPP */
@@ -399,9 +399,9 @@ signal_morse:
 .L25:
 .LBE7:
 .LBB8:
-	.loc 1 273 0 discriminator 3
+	.loc 1 279 0 discriminator 3
 /* #APP */
- ;  273 "morse_decoder.c" 1
+ ;  279 "morse_decoder.c" 1
 	nop
  ;  0 "" 2
 /* #NOAPP */
@@ -421,13 +421,13 @@ signal_morse:
 	.type	letter_gap, @function
 letter_gap:
 .LFB8:
-	.loc 1 290 0
+	.loc 1 296 0
 	.cfi_startproc
 /* prologue: function */
 /* frame size = 0 */
 /* stack size = 0 */
 .L__stack_usage = 0
-	.loc 1 291 0
+	.loc 1 297 0
 	ldi r24,lo8(6)
 	jmp delay_100ms_units
 .LVL26:
@@ -438,13 +438,13 @@ letter_gap:
 	.type	word_gap, @function
 word_gap:
 .LFB9:
-	.loc 1 295 0
+	.loc 1 301 0
 	.cfi_startproc
 /* prologue: function */
 /* frame size = 0 */
 /* stack size = 0 */
 .L__stack_usage = 0
-	.loc 1 296 0
+	.loc 1 302 0
 	ldi r24,lo8(14)
 	jmp delay_100ms_units
 .LVL27:
@@ -455,7 +455,7 @@ word_gap:
 	.type	get_morse_code, @function
 get_morse_code:
 .LFB10:
-	.loc 1 301 0
+	.loc 1 307 0
 	.cfi_startproc
 .LVL28:
 /* prologue: function */
@@ -463,18 +463,18 @@ get_morse_code:
 /* stack size = 0 */
 .L__stack_usage = 0
 	mov r30,r24
-	.loc 1 302 0
+	.loc 1 308 0
 	ldi r24,lo8(-65)
 .LVL29:
 	add r24,r30
 	cpi r24,lo8(26)
 	brsh .L37
-	.loc 1 303 0
+	.loc 1 309 0
 	subi r30,65
 	sbc r31,r31
 .LVL30:
 .L41:
-	.loc 1 305 0
+	.loc 1 311 0
 	lsl r30
 	rol r31
 	subi r30,lo8(-(morseCodeMap))
@@ -484,12 +484,12 @@ get_morse_code:
 	ret
 .LVL31:
 .L37:
-	.loc 1 304 0
+	.loc 1 310 0
 	ldi r24,lo8(-97)
 	add r24,r30
 	cpi r24,lo8(26)
 	brsh .L39
-	.loc 1 305 0
+	.loc 1 311 0
 	subi r30,97
 	sbc r31,r31
 .LVL32:
@@ -498,167 +498,364 @@ get_morse_code:
 .L39:
 .LBB11:
 .LBB12:
-	.loc 1 306 0
+	.loc 1 312 0
 	ldi r24,lo8(-48)
 	add r24,r30
-	.loc 1 307 0
+	.loc 1 313 0
 	subi r30,22
 	sbc r31,r31
 .LVL34:
-	.loc 1 306 0
+	.loc 1 312 0
 	cpi r24,lo8(10)
 	brlo .L41
-	.loc 1 309 0
+	.loc 1 315 0
 	ldi r25,0
 	ldi r24,0
 /* epilogue start */
 .LBE12:
 .LBE11:
-	.loc 1 311 0
+	.loc 1 317 0
 	ret
 	.cfi_endproc
 .LFE10:
 	.size	get_morse_code, .-get_morse_code
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"Morse Decoder"
+.LC1:
+	.string	"end of sentence"
 	.section	.text.startup,"ax",@progbits
 .global	main
 	.type	main, @function
 main:
 .LFB11:
-	.loc 1 313 0
-	.cfi_startproc
-/* prologue: function */
-/* frame size = 0 */
-/* stack size = 0 */
-.L__stack_usage = 0
-	.loc 1 315 0
-	sbi 0x4,5
-	.loc 1 316 0
-	sbi 0x4,1
-	.loc 1 319 0
-	cbi 0x5,5
 	.loc 1 320 0
-	cbi 0x5,1
+	.cfi_startproc
+	push r28
+.LCFI10:
+	.cfi_def_cfa_offset 3
+	.cfi_offset 28, -2
+	push r29
+.LCFI11:
+	.cfi_def_cfa_offset 4
+	.cfi_offset 29, -3
+	in r28,__SP_L__
+	in r29,__SP_H__
+.LCFI12:
+	.cfi_def_cfa_register 28
+	subi r28,-128
+	sbc r29,__zero_reg__
+.LCFI13:
+	.cfi_def_cfa_offset 132
+	in __tmp_reg__,__SREG__
+	cli
+	out __SP_H__,r29
+	out __SREG__,__tmp_reg__
+	out __SP_L__,r28
+/* prologue: function */
+/* frame size = 128 */
+/* stack size = 130 */
+.L__stack_usage = 130
+	.loc 1 322 0
+	in r24,0x4
+	ori r24,lo8(60)
+	out 0x4,r24
 	.loc 1 323 0
+	sbi 0x4,1
+	.loc 1 326 0
+	cbi 0x5,5
+	.loc 1 327 0
+	cbi 0x5,2
+	.loc 1 328 0
+	cbi 0x5,3
+	.loc 1 329 0
+	cbi 0x5,4
+	.loc 1 330 0
+	cbi 0x5,1
+	.loc 1 333 0
 	call usart_init
 .LVL35:
+	.loc 1 336 0
+	ldi r24,lo8(12)
+	call lcd_init
+.LVL36:
+	.loc 1 337 0
+	call lcd_clrscr
+.LVL37:
+	.loc 1 338 0
+	ldi r24,lo8(.LC0)
+	ldi r25,hi8(.LC0)
+	call lcd_puts
+.LVL38:
+.L59:
+	.loc 1 344 0
+	ldi r17,0
+.LVL39:
 .L43:
 .LBB13:
-	.loc 1 329 0
+	.loc 1 347 0
 	call usart_receive
-.LVL36:
-	mov r28,r24
-.LVL37:
-	.loc 1 331 0
+.LVL40:
+	mov r16,r24
+.LVL41:
+	.loc 1 348 0
 	call usart_send
-.LVL38:
-	.loc 1 333 0
-	cpi r28,lo8(32)
-	brne .L44
-	.loc 1 335 0
-	call word_gap
-.LVL39:
-	rjmp .L43
+.LVL42:
+	.loc 1 351 0
+	cpi r16,lo8(10)
+	breq .L44
+	.loc 1 351 0 is_stmt 0 discriminator 1
+	cpi r16,lo8(13)
+	breq .+2
+	rjmp .L45
 .L44:
 .LBB14:
-	.loc 1 337 0
-	mov r24,r28
+	.loc 1 352 0 is_stmt 1
+	ldi r30,lo8(1)
+	ldi r31,0
+	add r30,r28
+	adc r31,r29
+	add r30,r17
+	adc r31,__zero_reg__
+	st Z,__zero_reg__
+.LVL43:
+	.loc 1 355 0
+	call lcd_clrscr
+.LVL44:
+	.loc 1 353 0
+	mov r15,__zero_reg__
+.LVL45:
+.L46:
+	.loc 1 356 0
+	mov r16,r15
+	ldi r17,0
+	ldi r30,lo8(1)
+	ldi r31,0
+	add r30,r28
+	adc r31,r29
+	add r30,r16
+	adc r31,r17
+	ld r24,Z
+	cpse r24,__zero_reg__
+	rjmp .L51
+	.loc 1 387 0
+	call lcd_clrscr
+.LVL46:
+	.loc 1 388 0
+	ldi r24,lo8(.LC1)
+	ldi r25,hi8(.LC1)
+	call lcd_puts
+.LVL47:
+	.loc 1 389 0
+	sbi 0x5,4
+	.loc 1 390 0
+	ldi r24,lo8(10)
+	call delay_100ms_units
+.LVL48:
+	.loc 1 391 0
+	cbi 0x5,4
+.LVL49:
+	rjmp .L59
+.LVL50:
+.L51:
+	.loc 1 357 0
+	cpi r24,lo8(32)
+	brne .L47
+	.loc 1 359 0
+	sbi 0x5,3
+	.loc 1 360 0
+	call word_gap
+.LVL51:
+	.loc 1 361 0
+	cbi 0x5,3
+	.loc 1 363 0
+	ldi r24,lo8(32)
+.L60:
+.LBB15:
+.LBB16:
+	.loc 1 381 0
+	call lcd_putc
+.LVL52:
+.L48:
+.LBE16:
+.LBE15:
+	.loc 1 384 0
+	inc r15
+.LVL53:
+	rjmp .L46
+.L47:
+.LBB20:
+	.loc 1 366 0
 	call get_morse_code
-.LVL40:
-	.loc 1 338 0
+.LVL54:
+	movw r12,r24
+.LVL55:
+	.loc 1 367 0
 	sbiw r24,0
-	breq .L43
-	.loc 1 339 0
+	breq .L48
+.LBB19:
+	.loc 1 368 0
 	call signal_morse
-.LVL41:
-	.loc 1 340 0
+.LVL56:
+	.loc 1 370 0
+	sbi 0x5,2
+	.loc 1 371 0
+	ldi r24,lo8(2)
+	call delay_100ms_units
+.LVL57:
+	.loc 1 372 0
+	cbi 0x5,2
+	.loc 1 373 0
 	call letter_gap
-.LVL42:
-	rjmp .L43
+.LVL58:
+	.loc 1 375 0
+	call lcd_clrscr
+.LVL59:
+.LBB17:
+	.loc 1 377 0
+	mov r14,__zero_reg__
+.LVL60:
+.L49:
+	.loc 1 377 0 is_stmt 0 discriminator 1
+	movw r30,r12
+	add r30,r14
+	adc r31,__zero_reg__
+	ld r24,Z
+	cpse r24,__zero_reg__
+	rjmp .L50
+.LBE17:
+	.loc 1 380 0 is_stmt 1
+	ldi r24,lo8(32)
+	call lcd_putc
+.LVL61:
+	.loc 1 381 0
+	ldi r30,lo8(1)
+	ldi r31,0
+	add r30,r28
+	adc r31,r29
+	add r30,r16
+	adc r31,r17
+	ld r24,Z
+	rjmp .L60
+.L50:
+.LBB18:
+	.loc 1 378 0 discriminator 3
+	call lcd_putc
+.LVL62:
+	.loc 1 377 0 discriminator 3
+	inc r14
+.LVL63:
+	rjmp .L49
+.LVL64:
+.L45:
+.LBE18:
+.LBE19:
+.LBE20:
 .LBE14:
+	.loc 1 395 0
+	cpi r17,lo8(127)
+	brlo .+2
+	rjmp .L43
+	.loc 1 395 0 is_stmt 0 discriminator 1
+	ldi r24,lo8(-32)
+	add r24,r16
+	cpi r24,lo8(95)
+	brlo .+2
+	rjmp .L43
+.LVL65:
+	.loc 1 396 0 is_stmt 1
+	ldi r30,lo8(1)
+	ldi r31,0
+	add r30,r28
+	adc r31,r29
+	add r30,r17
+	adc r31,__zero_reg__
+	st Z,r16
+	subi r17,lo8(-(1))
+.LVL66:
+	rjmp .L43
 .LBE13:
 	.cfi_endproc
 .LFE11:
 	.size	main, .-main
 .global	morseCodeMap
-	.section	.rodata.str1.1,"aMS",@progbits,1
-.LC0:
-	.string	".-"
-.LC1:
-	.string	"-..."
+	.section	.rodata.str1.1
 .LC2:
-	.string	"-.-."
+	.string	".-"
 .LC3:
-	.string	"-.."
+	.string	"-..."
 .LC4:
-	.string	"."
+	.string	"-.-."
 .LC5:
-	.string	"..-."
+	.string	"-.."
 .LC6:
-	.string	"--."
+	.string	"."
 .LC7:
-	.string	"...."
+	.string	"..-."
 .LC8:
-	.string	".."
+	.string	"--."
 .LC9:
-	.string	".---"
+	.string	"...."
 .LC10:
-	.string	"-.-"
+	.string	".."
 .LC11:
-	.string	".-.."
+	.string	".---"
 .LC12:
-	.string	"--"
+	.string	"-.-"
 .LC13:
-	.string	"-."
+	.string	".-.."
 .LC14:
-	.string	"---"
+	.string	"--"
 .LC15:
-	.string	".--."
+	.string	"-."
 .LC16:
-	.string	"--.-"
+	.string	"---"
 .LC17:
-	.string	".-."
+	.string	".--."
 .LC18:
-	.string	"..."
+	.string	"--.-"
 .LC19:
-	.string	"-"
+	.string	".-."
 .LC20:
-	.string	"..-"
+	.string	"..."
 .LC21:
-	.string	"...-"
+	.string	"-"
 .LC22:
-	.string	".--"
+	.string	"..-"
 .LC23:
-	.string	"-..-"
+	.string	"...-"
 .LC24:
-	.string	"-.--"
+	.string	".--"
 .LC25:
-	.string	"--.."
+	.string	"-..-"
 .LC26:
-	.string	"-----"
+	.string	"-.--"
 .LC27:
-	.string	".----"
+	.string	"--.."
 .LC28:
-	.string	"..---"
+	.string	"-----"
 .LC29:
-	.string	"...--"
+	.string	".----"
 .LC30:
-	.string	"....-"
+	.string	"..---"
 .LC31:
-	.string	"....."
+	.string	"...--"
 .LC32:
-	.string	"-...."
+	.string	"....-"
 .LC33:
-	.string	"--..."
+	.string	"....."
 .LC34:
-	.string	"---.."
+	.string	"-...."
 .LC35:
+	.string	"--..."
+.LC36:
+	.string	"---.."
+.LC37:
 	.string	"----."
 	.data
 	.type	morseCodeMap, @object
 	.size	morseCodeMap, 72
 morseCodeMap:
-	.word	.LC0
-	.word	.LC1
 	.word	.LC2
 	.word	.LC3
 	.word	.LC4
@@ -693,21 +890,24 @@ morseCodeMap:
 	.word	.LC33
 	.word	.LC34
 	.word	.LC35
+	.word	.LC36
+	.word	.LC37
 	.text
 .Letext0:
 	.file 2 "/usr/lib/avr/include/stdint.h"
+	.file 3 "lcd.h"
 	.section	.debug_info,"",@progbits
 .Ldebug_info0:
-	.long	0x390
+	.long	0x50c
 	.word	0x2
 	.long	.Ldebug_abbrev0
 	.byte	0x4
 	.uleb128 0x1
-	.long	.LASF22
+	.long	.LASF30
 	.byte	0xc
-	.long	.LASF23
-	.long	.LASF24
-	.long	.Ldebug_ranges0+0x48
+	.long	.LASF31
+	.long	.LASF32
+	.long	.Ldebug_ranges0+0x90
 	.long	0
 	.long	0
 	.long	.Ldebug_line0
@@ -772,7 +972,7 @@ morseCodeMap:
 	.uleb128 0x9
 	.long	0x92
 	.uleb128 0xa
-	.long	.LASF25
+	.long	.LASF33
 	.byte	0x1
 	.byte	0x88
 	.long	0x7c
@@ -782,99 +982,246 @@ morseCodeMap:
 	.long	morseCodeMap
 	.uleb128 0xb
 	.byte	0x1
-	.long	.LASF26
+	.long	.LASF34
 	.byte	0x1
-	.word	0x139
+	.word	0x140
 	.byte	0x1
 	.long	0x42
 	.long	.LFB11
 	.long	.LFE11
-	.byte	0x3
-	.byte	0x92
-	.uleb128 0x20
-	.sleb128 2
-	.byte	0x1
-	.long	0x15f
-	.uleb128 0xc
-	.long	.LBB13
-	.long	.LBE13
-	.long	0x155
-	.uleb128 0xd
-	.string	"c"
-	.byte	0x1
-	.word	0x149
-	.long	0x92
 	.long	.LLST12
+	.byte	0x1
+	.long	0x28c
 	.uleb128 0xc
-	.long	.LBB14
-	.long	.LBE14
-	.long	0x12e
-	.uleb128 0xe
 	.long	.LASF10
 	.byte	0x1
-	.word	0x151
-	.long	0x8c
+	.word	0x153
+	.long	0x30
 	.long	.LLST13
+	.uleb128 0xd
+	.long	.LASF11
+	.byte	0x1
+	.word	0x157
+	.long	0x28c
+	.byte	0x2
+	.byte	0x8c
+	.sleb128 1
+	.uleb128 0xc
+	.long	.LASF12
+	.byte	0x1
+	.word	0x158
+	.long	0x30
+	.long	.LLST14
+	.uleb128 0xe
+	.long	.LBB13
+	.long	.LBE13
+	.long	0x24e
 	.uleb128 0xf
+	.string	"c"
+	.byte	0x1
+	.word	0x15b
+	.long	0x92
+	.long	.LLST15
+	.uleb128 0xe
+	.long	.LBB14
+	.long	.LBE14
+	.long	0x234
+	.uleb128 0xf
+	.string	"i"
+	.byte	0x1
+	.word	0x161
+	.long	0x30
+	.long	.LLST16
+	.uleb128 0x10
+	.long	.Ldebug_ranges0+0x48
+	.long	0x1e9
+	.uleb128 0xc
+	.long	.LASF13
+	.byte	0x1
+	.word	0x16e
+	.long	0x8c
+	.long	.LLST17
+	.uleb128 0x10
+	.long	.Ldebug_ranges0+0x60
+	.long	0x1df
+	.uleb128 0xc
+	.long	.LASF14
+	.byte	0x1
+	.word	0x178
+	.long	0x8c
+	.long	.LLST18
+	.uleb128 0x10
+	.long	.Ldebug_ranges0+0x78
+	.long	0x187
+	.uleb128 0xf
+	.string	"m"
+	.byte	0x1
+	.word	0x179
+	.long	0x30
+	.long	.LLST19
+	.uleb128 0x11
+	.long	.LVL62
+	.long	0x4d7
+	.byte	0
+	.uleb128 0x11
+	.long	.LVL52
+	.long	0x4d7
+	.uleb128 0x12
+	.long	.LVL56
+	.long	0x310
+	.long	0x1a9
+	.uleb128 0x13
+	.byte	0x6
+	.byte	0x68
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x69
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x2
+	.byte	0x7c
+	.sleb128 0
+	.byte	0
+	.uleb128 0x12
+	.long	.LVL57
+	.long	0x3b1
+	.long	0x1bc
+	.uleb128 0x13
+	.byte	0x1
+	.byte	0x68
+	.byte	0x1
+	.byte	0x32
+	.byte	0
+	.uleb128 0x11
+	.long	.LVL58
+	.long	0x2e5
+	.uleb128 0x11
+	.long	.LVL59
+	.long	0x4e5
+	.uleb128 0x14
+	.long	.LVL61
+	.long	0x4d7
+	.uleb128 0x13
+	.byte	0x1
+	.byte	0x68
+	.byte	0x2
+	.byte	0x8
+	.byte	0x20
+	.byte	0
+	.byte	0
+	.uleb128 0x11
+	.long	.LVL54
+	.long	0x29c
+	.byte	0
+	.uleb128 0x11
+	.long	.LVL44
+	.long	0x4e5
+	.uleb128 0x11
+	.long	.LVL46
+	.long	0x4e5
+	.uleb128 0x12
+	.long	.LVL47
+	.long	0x4f3
+	.long	0x217
+	.uleb128 0x13
+	.byte	0x6
+	.byte	0x68
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x69
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x5
+	.byte	0x3
+	.long	.LC1
+	.byte	0
+	.uleb128 0x12
+	.long	.LVL48
+	.long	0x3b1
+	.long	0x22a
+	.uleb128 0x13
+	.byte	0x1
+	.byte	0x68
+	.byte	0x1
+	.byte	0x3a
+	.byte	0
+	.uleb128 0x11
+	.long	.LVL51
+	.long	0x2ba
+	.byte	0
+	.uleb128 0x11
 	.long	.LVL40
-	.long	0x15f
-	.long	0x11b
-	.uleb128 0x10
-	.byte	0x1
-	.byte	0x68
-	.byte	0x2
-	.byte	0x8c
-	.sleb128 0
-	.byte	0
-	.uleb128 0x11
-	.long	.LVL41
-	.long	0x1d3
-	.uleb128 0x11
+	.long	0x448
+	.uleb128 0x14
 	.long	.LVL42
-	.long	0x1a8
-	.byte	0
-	.uleb128 0x11
-	.long	.LVL36
-	.long	0x308
-	.uleb128 0xf
-	.long	.LVL38
-	.long	0x322
-	.long	0x14b
-	.uleb128 0x10
+	.long	0x462
+	.uleb128 0x13
 	.byte	0x1
 	.byte	0x68
 	.byte	0x2
-	.byte	0x8c
+	.byte	0x80
 	.sleb128 0
 	.byte	0
-	.uleb128 0x11
-	.long	.LVL39
-	.long	0x17d
 	.byte	0
 	.uleb128 0x11
 	.long	.LVL35
-	.long	0x34a
-	.byte	0
+	.long	0x48a
 	.uleb128 0x12
+	.long	.LVL36
+	.long	0x501
+	.long	0x26a
+	.uleb128 0x13
 	.byte	0x1
-	.long	.LASF27
+	.byte	0x68
 	.byte	0x1
-	.word	0x12d
+	.byte	0x3c
+	.byte	0
+	.uleb128 0x11
+	.long	.LVL37
+	.long	0x4e5
+	.uleb128 0x14
+	.long	.LVL38
+	.long	0x4f3
+	.uleb128 0x13
+	.byte	0x6
+	.byte	0x68
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x69
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x5
+	.byte	0x3
+	.long	.LC0
+	.byte	0
+	.byte	0
+	.uleb128 0x6
+	.long	0x92
+	.long	0x29c
+	.uleb128 0x7
+	.long	0x59
+	.byte	0x7f
+	.byte	0
+	.uleb128 0x15
+	.byte	0x1
+	.long	.LASF35
+	.byte	0x1
+	.word	0x133
 	.byte	0x1
 	.long	0x8c
 	.byte	0x1
-	.long	0x17d
-	.uleb128 0x13
+	.long	0x2ba
+	.uleb128 0x16
 	.string	"c"
 	.byte	0x1
-	.word	0x12d
+	.word	0x133
 	.long	0x92
 	.byte	0
-	.uleb128 0x14
+	.uleb128 0x17
 	.byte	0x1
-	.long	.LASF11
+	.long	.LASF15
 	.byte	0x1
-	.word	0x127
+	.word	0x12d
 	.long	.LFB9
 	.long	.LFE9
 	.byte	0x3
@@ -882,23 +1229,23 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.long	0x1a8
-	.uleb128 0x15
+	.long	0x2e5
+	.uleb128 0x18
 	.long	.LVL27
 	.byte	0x1
-	.long	0x274
-	.uleb128 0x10
+	.long	0x3b1
+	.uleb128 0x13
 	.byte	0x1
 	.byte	0x68
 	.byte	0x1
 	.byte	0x3e
 	.byte	0
 	.byte	0
-	.uleb128 0x14
+	.uleb128 0x17
 	.byte	0x1
-	.long	.LASF12
+	.long	.LASF16
 	.byte	0x1
-	.word	0x122
+	.word	0x128
 	.long	.LFB8
 	.long	.LFE8
 	.byte	0x3
@@ -906,84 +1253,84 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.long	0x1d3
-	.uleb128 0x15
+	.long	0x310
+	.uleb128 0x18
 	.long	.LVL26
 	.byte	0x1
-	.long	0x274
-	.uleb128 0x10
+	.long	0x3b1
+	.uleb128 0x13
 	.byte	0x1
 	.byte	0x68
 	.byte	0x1
 	.byte	0x36
 	.byte	0
 	.byte	0
-	.uleb128 0x16
+	.uleb128 0x19
 	.byte	0x1
-	.long	.LASF15
+	.long	.LASF19
 	.byte	0x1
-	.word	0x101
+	.word	0x107
 	.byte	0x1
 	.long	.LFB7
 	.long	.LFE7
 	.long	.LLST5
 	.byte	0x1
-	.long	0x274
-	.uleb128 0x17
-	.long	.LASF17
+	.long	0x3b1
+	.uleb128 0x1a
+	.long	.LASF21
 	.byte	0x1
-	.word	0x101
+	.word	0x107
 	.long	0x8c
 	.long	.LLST6
-	.uleb128 0xd
+	.uleb128 0xf
 	.string	"i"
 	.byte	0x1
-	.word	0x102
+	.word	0x108
 	.long	0x42
 	.long	.LLST7
-	.uleb128 0x18
+	.uleb128 0x1b
 	.long	.LBB4
 	.long	.LBE4
-	.uleb128 0xe
-	.long	.LASF13
-	.byte	0x1
-	.word	0x108
-	.long	0x49
-	.long	.LLST8
-	.uleb128 0xe
-	.long	.LASF14
-	.byte	0x1
-	.word	0x109
-	.long	0x49
-	.long	.LLST9
-	.uleb128 0x19
-	.long	.Ldebug_ranges0+0x18
-	.long	0x24c
-	.uleb128 0x1a
-	.string	"d"
+	.uleb128 0xc
+	.long	.LASF17
 	.byte	0x1
 	.word	0x10e
+	.long	0x49
+	.long	.LLST8
+	.uleb128 0xc
+	.long	.LASF18
+	.byte	0x1
+	.word	0x10f
+	.long	0x49
+	.long	.LLST9
+	.uleb128 0x10
+	.long	.Ldebug_ranges0+0x18
+	.long	0x389
+	.uleb128 0x1c
+	.string	"d"
+	.byte	0x1
+	.word	0x114
 	.long	0x54
 	.byte	0x2
 	.byte	0x8c
 	.sleb128 3
 	.byte	0
-	.uleb128 0x19
+	.uleb128 0x10
 	.long	.Ldebug_ranges0+0x30
-	.long	0x263
-	.uleb128 0x1a
+	.long	0x3a0
+	.uleb128 0x1c
 	.string	"d"
 	.byte	0x1
-	.word	0x111
+	.word	0x117
 	.long	0x54
 	.byte	0x2
 	.byte	0x8c
 	.sleb128 1
 	.byte	0
-	.uleb128 0x1b
+	.uleb128 0x14
 	.long	.LVL24
-	.long	0x274
-	.uleb128 0x10
+	.long	0x3b1
+	.uleb128 0x13
 	.byte	0x1
 	.byte	0x68
 	.byte	0x1
@@ -991,39 +1338,39 @@ morseCodeMap:
 	.byte	0
 	.byte	0
 	.byte	0
-	.uleb128 0x1c
+	.uleb128 0x19
 	.byte	0x1
-	.long	.LASF16
+	.long	.LASF20
 	.byte	0x1
-	.byte	0xfa
+	.word	0x100
 	.byte	0x1
 	.long	.LFB6
 	.long	.LFE6
 	.long	.LLST2
 	.byte	0x1
-	.long	0x2ba
-	.uleb128 0x1d
-	.long	.LASF18
+	.long	0x3fa
+	.uleb128 0x1a
+	.long	.LASF22
 	.byte	0x1
-	.byte	0xfa
+	.word	0x100
 	.long	0x30
 	.long	.LLST3
-	.uleb128 0x1e
+	.uleb128 0x1d
 	.long	.Ldebug_ranges0+0
-	.uleb128 0x1f
+	.uleb128 0xf
 	.string	"i"
 	.byte	0x1
-	.byte	0xfb
+	.word	0x101
 	.long	0x30
 	.long	.LLST4
 	.uleb128 0x11
 	.long	.LVL13
-	.long	0x2ba
+	.long	0x3fa
 	.byte	0
 	.byte	0
-	.uleb128 0x20
+	.uleb128 0x1e
 	.byte	0x1
-	.long	.LASF28
+	.long	.LASF36
 	.byte	0x1
 	.byte	0xca
 	.long	.LFB5
@@ -1033,9 +1380,9 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.uleb128 0x1c
+	.uleb128 0x1f
 	.byte	0x1
-	.long	.LASF19
+	.long	.LASF23
 	.byte	0x1
 	.byte	0x7a
 	.byte	0x1
@@ -1043,23 +1390,23 @@ morseCodeMap:
 	.long	.LFE4
 	.long	.LLST0
 	.byte	0x1
-	.long	0x302
-	.uleb128 0x21
+	.long	0x442
+	.uleb128 0x20
 	.string	"str"
 	.byte	0x1
 	.byte	0x7a
-	.long	0x302
+	.long	0x442
 	.long	.LLST1
 	.uleb128 0x11
 	.long	.LVL6
-	.long	0x322
+	.long	0x462
 	.byte	0
 	.uleb128 0x8
 	.byte	0x2
 	.long	0x92
-	.uleb128 0x22
+	.uleb128 0x21
 	.byte	0x1
-	.long	.LASF29
+	.long	.LASF37
 	.byte	0x1
 	.byte	0x70
 	.byte	0x1
@@ -1071,9 +1418,9 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.uleb128 0x23
+	.uleb128 0x22
 	.byte	0x1
-	.long	.LASF20
+	.long	.LASF24
 	.byte	0x1
 	.byte	0x66
 	.byte	0x1
@@ -1084,18 +1431,18 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.long	0x34a
-	.uleb128 0x24
-	.long	.LASF21
+	.long	0x48a
+	.uleb128 0x23
+	.long	.LASF25
 	.byte	0x1
 	.byte	0x66
 	.long	0x92
 	.byte	0x1
 	.byte	0x68
 	.byte	0
-	.uleb128 0x25
+	.uleb128 0x24
 	.byte	0x1
-	.long	.LASF30
+	.long	.LASF38
 	.byte	0x1
 	.byte	0x39
 	.byte	0x1
@@ -1106,8 +1453,8 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.uleb128 0x26
-	.long	0x15f
+	.uleb128 0x25
+	.long	0x29c
 	.long	.LFB10
 	.long	.LFE10
 	.byte	0x3
@@ -1115,18 +1462,47 @@ morseCodeMap:
 	.uleb128 0x20
 	.sleb128 2
 	.byte	0x1
-	.uleb128 0x27
-	.long	0x172
+	.long	0x4d7
+	.uleb128 0x26
+	.long	0x2af
 	.long	.LLST10
-	.uleb128 0x28
-	.long	0x15f
+	.uleb128 0x27
+	.long	0x29c
 	.long	.LBB11
 	.long	.LBE11
-	.uleb128 0x27
-	.long	0x172
+	.uleb128 0x26
+	.long	0x2af
 	.long	.LLST11
 	.byte	0
 	.byte	0
+	.uleb128 0x28
+	.byte	0x1
+	.byte	0x1
+	.long	.LASF26
+	.long	.LASF26
+	.byte	0x3
+	.word	0x149
+	.uleb128 0x28
+	.byte	0x1
+	.byte	0x1
+	.long	.LASF27
+	.long	.LASF27
+	.byte	0x3
+	.word	0x130
+	.uleb128 0x28
+	.byte	0x1
+	.byte	0x1
+	.long	.LASF28
+	.long	.LASF28
+	.byte	0x3
+	.word	0x151
+	.uleb128 0x28
+	.byte	0x1
+	.byte	0x1
+	.long	.LASF29
+	.long	.LASF29
+	.byte	0x3
+	.word	0x129
 	.byte	0
 	.section	.debug_abbrev,"",@progbits
 .Ldebug_abbrev0:
@@ -1264,7 +1640,7 @@ morseCodeMap:
 	.uleb128 0x12
 	.uleb128 0x1
 	.uleb128 0x40
-	.uleb128 0xa
+	.uleb128 0x6
 	.uleb128 0x2117
 	.uleb128 0xc
 	.uleb128 0x1
@@ -1272,6 +1648,36 @@ morseCodeMap:
 	.byte	0
 	.byte	0
 	.uleb128 0xc
+	.uleb128 0x34
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0x5
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0x6
+	.byte	0
+	.byte	0
+	.uleb128 0xd
+	.uleb128 0x34
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0x5
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0xa
+	.byte	0
+	.byte	0
+	.uleb128 0xe
 	.uleb128 0xb
 	.byte	0x1
 	.uleb128 0x11
@@ -1282,7 +1688,7 @@ morseCodeMap:
 	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0xd
+	.uleb128 0xf
 	.uleb128 0x34
 	.byte	0
 	.uleb128 0x3
@@ -1297,39 +1703,13 @@ morseCodeMap:
 	.uleb128 0x6
 	.byte	0
 	.byte	0
-	.uleb128 0xe
-	.uleb128 0x34
-	.byte	0
-	.uleb128 0x3
-	.uleb128 0xe
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0x5
-	.uleb128 0x49
-	.uleb128 0x13
-	.uleb128 0x2
-	.uleb128 0x6
-	.byte	0
-	.byte	0
-	.uleb128 0xf
-	.uleb128 0x4109
-	.byte	0x1
-	.uleb128 0x11
-	.uleb128 0x1
-	.uleb128 0x31
-	.uleb128 0x13
-	.uleb128 0x1
-	.uleb128 0x13
-	.byte	0
-	.byte	0
 	.uleb128 0x10
-	.uleb128 0x410a
-	.byte	0
-	.uleb128 0x2
-	.uleb128 0xa
-	.uleb128 0x2111
-	.uleb128 0xa
+	.uleb128 0xb
+	.byte	0x1
+	.uleb128 0x55
+	.uleb128 0x6
+	.uleb128 0x1
+	.uleb128 0x13
 	.byte	0
 	.byte	0
 	.uleb128 0x11
@@ -1342,6 +1722,35 @@ morseCodeMap:
 	.byte	0
 	.byte	0
 	.uleb128 0x12
+	.uleb128 0x4109
+	.byte	0x1
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x31
+	.uleb128 0x13
+	.uleb128 0x1
+	.uleb128 0x13
+	.byte	0
+	.byte	0
+	.uleb128 0x13
+	.uleb128 0x410a
+	.byte	0
+	.uleb128 0x2
+	.uleb128 0xa
+	.uleb128 0x2111
+	.uleb128 0xa
+	.byte	0
+	.byte	0
+	.uleb128 0x14
+	.uleb128 0x4109
+	.byte	0x1
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x31
+	.uleb128 0x13
+	.byte	0
+	.byte	0
+	.uleb128 0x15
 	.uleb128 0x2e
 	.byte	0x1
 	.uleb128 0x3f
@@ -1362,7 +1771,7 @@ morseCodeMap:
 	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0x13
+	.uleb128 0x16
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x3
@@ -1375,7 +1784,7 @@ morseCodeMap:
 	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0x14
+	.uleb128 0x17
 	.uleb128 0x2e
 	.byte	0x1
 	.uleb128 0x3f
@@ -1398,7 +1807,7 @@ morseCodeMap:
 	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0x15
+	.uleb128 0x18
 	.uleb128 0x4109
 	.byte	0x1
 	.uleb128 0x11
@@ -1409,7 +1818,7 @@ morseCodeMap:
 	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0x16
+	.uleb128 0x19
 	.uleb128 0x2e
 	.byte	0x1
 	.uleb128 0x3f
@@ -1430,44 +1839,35 @@ morseCodeMap:
 	.uleb128 0x6
 	.uleb128 0x2117
 	.uleb128 0xc
-	.uleb128 0x1
-	.uleb128 0x13
-	.byte	0
-	.byte	0
-	.uleb128 0x17
-	.uleb128 0x5
-	.byte	0
-	.uleb128 0x3
-	.uleb128 0xe
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0x5
-	.uleb128 0x49
-	.uleb128 0x13
-	.uleb128 0x2
-	.uleb128 0x6
-	.byte	0
-	.byte	0
-	.uleb128 0x18
-	.uleb128 0xb
-	.byte	0x1
-	.uleb128 0x11
-	.uleb128 0x1
-	.uleb128 0x12
-	.uleb128 0x1
-	.byte	0
-	.byte	0
-	.uleb128 0x19
-	.uleb128 0xb
-	.byte	0x1
-	.uleb128 0x55
-	.uleb128 0x6
 	.uleb128 0x1
 	.uleb128 0x13
 	.byte	0
 	.byte	0
 	.uleb128 0x1a
+	.uleb128 0x5
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0x5
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0x6
+	.byte	0
+	.byte	0
+	.uleb128 0x1b
+	.uleb128 0xb
+	.byte	0x1
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x1
+	.byte	0
+	.byte	0
+	.uleb128 0x1c
 	.uleb128 0x34
 	.byte	0
 	.uleb128 0x3
@@ -1482,78 +1882,14 @@ morseCodeMap:
 	.uleb128 0xa
 	.byte	0
 	.byte	0
-	.uleb128 0x1b
-	.uleb128 0x4109
-	.byte	0x1
-	.uleb128 0x11
-	.uleb128 0x1
-	.uleb128 0x31
-	.uleb128 0x13
-	.byte	0
-	.byte	0
-	.uleb128 0x1c
-	.uleb128 0x2e
-	.byte	0x1
-	.uleb128 0x3f
-	.uleb128 0xc
-	.uleb128 0x3
-	.uleb128 0xe
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0xb
-	.uleb128 0x27
-	.uleb128 0xc
-	.uleb128 0x11
-	.uleb128 0x1
-	.uleb128 0x12
-	.uleb128 0x1
-	.uleb128 0x40
-	.uleb128 0x6
-	.uleb128 0x2117
-	.uleb128 0xc
-	.uleb128 0x1
-	.uleb128 0x13
-	.byte	0
-	.byte	0
 	.uleb128 0x1d
-	.uleb128 0x5
-	.byte	0
-	.uleb128 0x3
-	.uleb128 0xe
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0xb
-	.uleb128 0x49
-	.uleb128 0x13
-	.uleb128 0x2
-	.uleb128 0x6
-	.byte	0
-	.byte	0
-	.uleb128 0x1e
 	.uleb128 0xb
 	.byte	0x1
 	.uleb128 0x55
 	.uleb128 0x6
 	.byte	0
 	.byte	0
-	.uleb128 0x1f
-	.uleb128 0x34
-	.byte	0
-	.uleb128 0x3
-	.uleb128 0x8
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0xb
-	.uleb128 0x49
-	.uleb128 0x13
-	.uleb128 0x2
-	.uleb128 0x6
-	.byte	0
-	.byte	0
-	.uleb128 0x20
+	.uleb128 0x1e
 	.uleb128 0x2e
 	.byte	0
 	.uleb128 0x3f
@@ -1574,7 +1910,32 @@ morseCodeMap:
 	.uleb128 0xc
 	.byte	0
 	.byte	0
-	.uleb128 0x21
+	.uleb128 0x1f
+	.uleb128 0x2e
+	.byte	0x1
+	.uleb128 0x3f
+	.uleb128 0xc
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x27
+	.uleb128 0xc
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x1
+	.uleb128 0x40
+	.uleb128 0x6
+	.uleb128 0x2117
+	.uleb128 0xc
+	.uleb128 0x1
+	.uleb128 0x13
+	.byte	0
+	.byte	0
+	.uleb128 0x20
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x3
@@ -1587,35 +1948,35 @@ morseCodeMap:
 	.uleb128 0x13
 	.uleb128 0x2
 	.uleb128 0x6
+	.byte	0
+	.byte	0
+	.uleb128 0x21
+	.uleb128 0x2e
+	.byte	0
+	.uleb128 0x3f
+	.uleb128 0xc
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x27
+	.uleb128 0xc
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x1
+	.uleb128 0x40
+	.uleb128 0xa
+	.uleb128 0x2117
+	.uleb128 0xc
 	.byte	0
 	.byte	0
 	.uleb128 0x22
 	.uleb128 0x2e
-	.byte	0
-	.uleb128 0x3f
-	.uleb128 0xc
-	.uleb128 0x3
-	.uleb128 0xe
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0xb
-	.uleb128 0x27
-	.uleb128 0xc
-	.uleb128 0x49
-	.uleb128 0x13
-	.uleb128 0x11
-	.uleb128 0x1
-	.uleb128 0x12
-	.uleb128 0x1
-	.uleb128 0x40
-	.uleb128 0xa
-	.uleb128 0x2117
-	.uleb128 0xc
-	.byte	0
-	.byte	0
-	.uleb128 0x23
-	.uleb128 0x2e
 	.byte	0x1
 	.uleb128 0x3f
 	.uleb128 0xc
@@ -1639,7 +2000,7 @@ morseCodeMap:
 	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0x24
+	.uleb128 0x23
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x3
@@ -1654,7 +2015,7 @@ morseCodeMap:
 	.uleb128 0xa
 	.byte	0
 	.byte	0
-	.uleb128 0x25
+	.uleb128 0x24
 	.uleb128 0x2e
 	.byte	0
 	.uleb128 0x3f
@@ -1677,7 +2038,7 @@ morseCodeMap:
 	.uleb128 0xc
 	.byte	0
 	.byte	0
-	.uleb128 0x26
+	.uleb128 0x25
 	.uleb128 0x2e
 	.byte	0x1
 	.uleb128 0x31
@@ -1690,9 +2051,11 @@ morseCodeMap:
 	.uleb128 0xa
 	.uleb128 0x2117
 	.uleb128 0xc
+	.uleb128 0x1
+	.uleb128 0x13
 	.byte	0
 	.byte	0
-	.uleb128 0x27
+	.uleb128 0x26
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x31
@@ -1701,7 +2064,7 @@ morseCodeMap:
 	.uleb128 0x6
 	.byte	0
 	.byte	0
-	.uleb128 0x28
+	.uleb128 0x27
 	.uleb128 0xb
 	.byte	0x1
 	.uleb128 0x31
@@ -1710,32 +2073,160 @@ morseCodeMap:
 	.uleb128 0x1
 	.uleb128 0x12
 	.uleb128 0x1
+	.byte	0
+	.byte	0
+	.uleb128 0x28
+	.uleb128 0x2e
+	.byte	0
+	.uleb128 0x3f
+	.uleb128 0xc
+	.uleb128 0x3c
+	.uleb128 0xc
+	.uleb128 0x2007
+	.uleb128 0xe
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0x5
 	.byte	0
 	.byte	0
 	.byte	0
 	.section	.debug_loc,"",@progbits
 .Ldebug_loc0:
 .LLST12:
-	.long	.LVL37
-	.long	.LVL38-1
-	.word	0x1
-	.byte	0x68
-	.long	.LVL38-1
+	.long	.LFB11
+	.long	.LCFI10
+	.word	0x3
+	.byte	0x92
+	.uleb128 0x20
+	.sleb128 2
+	.long	.LCFI10
+	.long	.LCFI11
+	.word	0x3
+	.byte	0x92
+	.uleb128 0x20
+	.sleb128 3
+	.long	.LCFI11
+	.long	.LCFI12
+	.word	0x3
+	.byte	0x92
+	.uleb128 0x20
+	.sleb128 4
+	.long	.LCFI12
+	.long	.LCFI13
+	.word	0x2
+	.byte	0x8c
+	.sleb128 4
+	.long	.LCFI13
 	.long	.LFE11
-	.word	0x1
-	.byte	0x6c
+	.word	0x3
+	.byte	0x8c
+	.sleb128 132
 	.long	0
 	.long	0
 .LLST13:
-	.long	.LVL40
-	.long	.LVL41-1
+	.long	.LVL38
+	.long	.LVL45
+	.word	0x2
+	.byte	0x30
+	.byte	0x9f
+	.long	.LVL64
+	.long	.LFE11
+	.word	0x2
+	.byte	0x30
+	.byte	0x9f
+	.long	0
+	.long	0
+.LLST14:
+	.long	.LVL38
+	.long	.LVL39
+	.word	0x2
+	.byte	0x30
+	.byte	0x9f
+	.long	.LVL39
+	.long	.LVL45
+	.word	0x1
+	.byte	0x61
+	.long	.LVL49
+	.long	.LVL50
+	.word	0x2
+	.byte	0x30
+	.byte	0x9f
+	.long	.LVL64
+	.long	.LVL65
+	.word	0x1
+	.byte	0x61
+	.long	.LVL65
+	.long	.LVL66
+	.word	0x3
+	.byte	0x81
+	.sleb128 1
+	.byte	0x9f
+	.long	.LVL66
+	.long	.LFE11
+	.word	0x1
+	.byte	0x61
+	.long	0
+	.long	0
+.LLST15:
+	.long	.LVL41
+	.long	.LVL45
+	.word	0x1
+	.byte	0x60
+	.long	.LVL64
+	.long	.LFE11
+	.word	0x1
+	.byte	0x60
+	.long	0
+	.long	0
+.LLST16:
+	.long	.LVL43
+	.long	.LVL45
+	.word	0x2
+	.byte	0x30
+	.byte	0x9f
+	.long	.LVL45
+	.long	.LVL64
+	.word	0x1
+	.byte	0x5f
+	.long	0
+	.long	0
+.LLST17:
+	.long	.LVL55
+	.long	.LVL64
 	.word	0x6
-	.byte	0x68
+	.byte	0x5c
 	.byte	0x93
 	.uleb128 0x1
-	.byte	0x69
+	.byte	0x5d
 	.byte	0x93
 	.uleb128 0x1
+	.long	0
+	.long	0
+.LLST18:
+	.long	.LVL59
+	.long	.LVL64
+	.word	0x6
+	.byte	0x5c
+	.byte	0x93
+	.uleb128 0x1
+	.byte	0x5d
+	.byte	0x93
+	.uleb128 0x1
+	.long	0
+	.long	0
+.LLST19:
+	.long	.LVL59
+	.long	.LVL60
+	.word	0x2
+	.byte	0x30
+	.byte	0x9f
+	.long	.LVL60
+	.long	.LVL64
+	.word	0x1
+	.byte	0x5e
 	.long	0
 	.long	0
 .LLST5:
@@ -2125,6 +2616,24 @@ morseCodeMap:
 	.long	.LBE8
 	.long	0
 	.long	0
+	.long	.LBB15
+	.long	.LBE15
+	.long	.LBB20
+	.long	.LBE20
+	.long	0
+	.long	0
+	.long	.LBB16
+	.long	.LBE16
+	.long	.LBB19
+	.long	.LBE19
+	.long	0
+	.long	0
+	.long	.LBB17
+	.long	.LBE17
+	.long	.LBB18
+	.long	.LBE18
+	.long	0
+	.long	0
 	.long	.Ltext0
 	.long	.Letext0
 	.long	.LFB11
@@ -2134,67 +2643,83 @@ morseCodeMap:
 	.section	.debug_line,"",@progbits
 .Ldebug_line0:
 	.section	.debug_str,"MS",@progbits,1
-.LASF10:
-	.string	"morse"
-.LASF29:
-	.string	"usart_receive"
 .LASF13:
-	.string	"on_duration_ms"
-.LASF19:
-	.string	"usart_send_string"
-.LASF22:
-	.string	"GNU C99 7.3.0 -mn-flash=1 -mno-skip-bug -mmcu=avr5 -gdwarf-2 -Os -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums"
-.LASF18:
-	.string	"units"
+	.string	"morse"
+.LASF37:
+	.string	"usart_receive"
 .LASF28:
-	.string	"delay_timer"
-.LASF11:
-	.string	"word_gap"
+	.string	"lcd_puts"
+.LASF17:
+	.string	"on_duration_ms"
 .LASF23:
+	.string	"usart_send_string"
+.LASF30:
+	.string	"GNU C99 7.3.0 -mn-flash=1 -mno-skip-bug -mmcu=avr5 -gdwarf-2 -Os -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums"
+.LASF14:
+	.string	"morse_str"
+.LASF22:
+	.string	"units"
+.LASF36:
+	.string	"delay_timer"
+.LASF15:
+	.string	"word_gap"
+.LASF10:
+	.string	"lcd_col"
+.LASF31:
 	.string	"morse_decoder.c"
 .LASF1:
 	.string	"unsigned char"
-.LASF17:
+.LASF21:
 	.string	"morse_string"
-.LASF27:
+.LASF35:
 	.string	"get_morse_code"
 .LASF6:
 	.string	"long unsigned int"
-.LASF15:
+.LASF29:
+	.string	"lcd_init"
+.LASF19:
 	.string	"signal_morse"
-.LASF21:
-	.string	"send_char"
-.LASF26:
-	.string	"main"
 .LASF25:
+	.string	"send_char"
+.LASF27:
+	.string	"lcd_clrscr"
+.LASF34:
+	.string	"main"
+.LASF33:
 	.string	"morseCodeMap"
-.LASF12:
-	.string	"letter_gap"
-.LASF20:
-	.string	"usart_send"
 .LASF16:
+	.string	"letter_gap"
+.LASF24:
+	.string	"usart_send"
+.LASF20:
 	.string	"delay_100ms_units"
 .LASF4:
 	.string	"unsigned int"
+.LASF12:
+	.string	"buf_idx"
 .LASF8:
 	.string	"long long unsigned int"
 .LASF2:
 	.string	"uint8_t"
-.LASF14:
+.LASF18:
 	.string	"elapsed"
-.LASF30:
+.LASF38:
 	.string	"usart_init"
-.LASF24:
+.LASF32:
 	.string	"/media/ravindu/Documents/University/CO321/Repo/CO321_Embedded_Labs/Project"
 .LASF7:
 	.string	"long long int"
 .LASF9:
 	.string	"char"
+.LASF11:
+	.string	"buffer"
 .LASF3:
 	.string	"uint16_t"
 .LASF5:
 	.string	"long int"
 .LASF0:
 	.string	"signed char"
+.LASF26:
+	.string	"lcd_putc"
 	.ident	"GCC: (GNU) 7.3.0"
 .global __do_copy_data

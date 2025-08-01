@@ -741,7 +741,7 @@ void delay_timer()
 # 226 "morse_decoder.c"
                        );
 }
-# 250 "morse_decoder.c"
+# 256 "morse_decoder.c"
 void delay_100ms_units(uint8_t units) {
     for (uint8_t i = 0; i < units; i++) {
         delay_timer();
@@ -754,13 +754,13 @@ void signal_morse(const char* morse_string) {
     while (morse_string[i] != '\0') {
 
         
-# 261 "morse_decoder.c" 3
+# 267 "morse_decoder.c" 3
        (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 261 "morse_decoder.c"
+# 267 "morse_decoder.c"
                 |= (1 << 
-# 261 "morse_decoder.c" 3
+# 267 "morse_decoder.c" 3
                          5
-# 261 "morse_decoder.c"
+# 267 "morse_decoder.c"
                                 );
 
 
@@ -769,24 +769,24 @@ void signal_morse(const char* morse_string) {
         while (elapsed < on_duration_ms) {
 
             
-# 268 "morse_decoder.c" 3
+# 274 "morse_decoder.c" 3
            (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 268 "morse_decoder.c"
+# 274 "morse_decoder.c"
                        |= (1 << 
-# 268 "morse_decoder.c" 3
+# 274 "morse_decoder.c" 3
                                 1
-# 268 "morse_decoder.c"
+# 274 "morse_decoder.c"
                                           );
 
             for (volatile uint16_t d = 0; d < (16000000UL / 1000 / 8 / 2); d++) { asm volatile ("nop"); }
             
-# 271 "morse_decoder.c" 3
+# 277 "morse_decoder.c" 3
            (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 271 "morse_decoder.c"
+# 277 "morse_decoder.c"
                        &= ~(1 << 
-# 271 "morse_decoder.c" 3
+# 277 "morse_decoder.c" 3
                                  1
-# 271 "morse_decoder.c"
+# 277 "morse_decoder.c"
                                            );
 
             for (volatile uint16_t d = 0; d < (16000000UL / 1000 / 8 / 2); d++) { asm volatile ("nop"); }
@@ -795,22 +795,22 @@ void signal_morse(const char* morse_string) {
 
 
         
-# 278 "morse_decoder.c" 3
+# 284 "morse_decoder.c" 3
        (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 278 "morse_decoder.c"
+# 284 "morse_decoder.c"
                 &= ~(1 << 
-# 278 "morse_decoder.c" 3
+# 284 "morse_decoder.c" 3
                           5
-# 278 "morse_decoder.c"
+# 284 "morse_decoder.c"
                                  );
         
-# 279 "morse_decoder.c" 3
+# 285 "morse_decoder.c" 3
        (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 279 "morse_decoder.c"
+# 285 "morse_decoder.c"
                    &= ~(1 << 
-# 279 "morse_decoder.c" 3
+# 285 "morse_decoder.c" 3
                              1
-# 279 "morse_decoder.c"
+# 285 "morse_decoder.c"
                                        );
 
 
@@ -842,79 +842,212 @@ const char* get_morse_code(char c) {
         return morseCodeMap[26 + (c - '0')];
     } else {
         return 
-# 309 "morse_decoder.c" 3 4
+# 315 "morse_decoder.c" 3 4
               ((void *)0)
-# 309 "morse_decoder.c"
+# 315 "morse_decoder.c"
                   ;
     }
 }
 
+
 int main(void) {
 
     
-# 315 "morse_decoder.c" 3
+# 322 "morse_decoder.c" 3
    (*(volatile uint8_t *)((0x04) + 0x20)) 
-# 315 "morse_decoder.c"
+# 322 "morse_decoder.c"
            |= (1 << 
-# 315 "morse_decoder.c" 3
+# 322 "morse_decoder.c" 3
                     5
-# 315 "morse_decoder.c"
-                           );
+# 322 "morse_decoder.c"
+                           ) | (1 << 
+# 322 "morse_decoder.c" 3
+                                     2
+# 322 "morse_decoder.c"
+                                                   ) | (1 << 
+# 322 "morse_decoder.c" 3
+                                                             3
+# 322 "morse_decoder.c"
+                                                                         ) | (1 << 
+# 322 "morse_decoder.c" 3
+                                                                                   4
+# 322 "morse_decoder.c"
+                                                                                               );
     
-# 316 "morse_decoder.c" 3
+# 323 "morse_decoder.c" 3
    (*(volatile uint8_t *)((0x04) + 0x20)) 
-# 316 "morse_decoder.c"
+# 323 "morse_decoder.c"
               |= (1 << 
-# 316 "morse_decoder.c" 3
+# 323 "morse_decoder.c" 3
                        1
-# 316 "morse_decoder.c"
+# 323 "morse_decoder.c"
                                  );
 
 
     
-# 319 "morse_decoder.c" 3
+# 326 "morse_decoder.c" 3
    (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 319 "morse_decoder.c"
+# 326 "morse_decoder.c"
             &= ~(1 << 
-# 319 "morse_decoder.c" 3
+# 326 "morse_decoder.c" 3
                       5
-# 319 "morse_decoder.c"
+# 326 "morse_decoder.c"
                              );
     
-# 320 "morse_decoder.c" 3
+# 327 "morse_decoder.c" 3
    (*(volatile uint8_t *)((0x05) + 0x20)) 
-# 320 "morse_decoder.c"
+# 327 "morse_decoder.c"
+            &= ~(1 << 
+# 327 "morse_decoder.c" 3
+                      2
+# 327 "morse_decoder.c"
+                                    );
+    
+# 328 "morse_decoder.c" 3
+   (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 328 "morse_decoder.c"
+            &= ~(1 << 
+# 328 "morse_decoder.c" 3
+                      3
+# 328 "morse_decoder.c"
+                                  );
+    
+# 329 "morse_decoder.c" 3
+   (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 329 "morse_decoder.c"
+            &= ~(1 << 
+# 329 "morse_decoder.c" 3
+                      4
+# 329 "morse_decoder.c"
+                                  );
+    
+# 330 "morse_decoder.c" 3
+   (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 330 "morse_decoder.c"
                &= ~(1 << 
-# 320 "morse_decoder.c" 3
+# 330 "morse_decoder.c" 3
                          1
-# 320 "morse_decoder.c"
+# 330 "morse_decoder.c"
                                    );
 
 
     usart_init();
 
 
+    lcd_init(0x0C);
+    lcd_clrscr();
+    lcd_puts("Morse Decoder");
+    uint8_t lcd_col = 0;
 
+
+
+    char buffer[128];
+    uint8_t buf_idx = 0;
 
     while (1) {
         char c = usart_receive();
-
         usart_send(c);
 
-        if (c == ' ') {
 
-            word_gap();
-        } else {
-            const char* morse = get_morse_code(c);
-            if (morse != 
-# 338 "morse_decoder.c" 3 4
-                        ((void *)0)
-# 338 "morse_decoder.c"
-                            ) {
-                signal_morse(morse);
-                letter_gap();
+        if (c == '\n' || c == '\r') {
+            buffer[buf_idx] = '\0';
+            uint8_t i = 0;
+            lcd_col = 0;
+            lcd_clrscr();
+            while (buffer[i] != '\0') {
+                if (buffer[i] == ' ') {
+
+                    
+# 359 "morse_decoder.c" 3
+                   (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 359 "morse_decoder.c"
+                            |= (1 << 
+# 359 "morse_decoder.c" 3
+                                     3
+# 359 "morse_decoder.c"
+                                                 );
+                    word_gap();
+                    
+# 361 "morse_decoder.c" 3
+                   (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 361 "morse_decoder.c"
+                            &= ~(1 << 
+# 361 "morse_decoder.c" 3
+                                      3
+# 361 "morse_decoder.c"
+                                                  );
+
+                    lcd_putc(' ');
+                    lcd_col++;
+                } else {
+                    const char* morse = get_morse_code(buffer[i]);
+                    if (morse != 
+# 367 "morse_decoder.c" 3 4
+                                ((void *)0)
+# 367 "morse_decoder.c"
+                                    ) {
+                        signal_morse(morse);
+
+                        
+# 370 "morse_decoder.c" 3
+                       (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 370 "morse_decoder.c"
+                                |= (1 << 
+# 370 "morse_decoder.c" 3
+                                         2
+# 370 "morse_decoder.c"
+                                                       );
+                        delay_100ms_units(2);
+                        
+# 372 "morse_decoder.c" 3
+                       (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 372 "morse_decoder.c"
+                                &= ~(1 << 
+# 372 "morse_decoder.c" 3
+                                          2
+# 372 "morse_decoder.c"
+                                                        );
+                        letter_gap();
+
+                        lcd_clrscr();
+                        const char* morse_str = morse;
+                        for (uint8_t m = 0; morse_str[m] != '\0'; m++) {
+                            lcd_putc(morse_str[m]);
+                        }
+                        lcd_putc(' ');
+                        lcd_putc(buffer[i]);
+                    }
+                }
+                i++;
             }
 
+            lcd_clrscr();
+            lcd_puts("end of sentence");
+            
+# 389 "morse_decoder.c" 3
+           (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 389 "morse_decoder.c"
+                    |= (1 << 
+# 389 "morse_decoder.c" 3
+                             4
+# 389 "morse_decoder.c"
+                                         );
+            delay_100ms_units(10);
+            
+# 391 "morse_decoder.c" 3
+           (*(volatile uint8_t *)((0x05) + 0x20)) 
+# 391 "morse_decoder.c"
+                    &= ~(1 << 
+# 391 "morse_decoder.c" 3
+                              4
+# 391 "morse_decoder.c"
+                                          );
+            buf_idx = 0;
+        } else {
+
+            if (buf_idx < 128 - 1 && (c >= 32 && c <= 126)) {
+                buffer[buf_idx++] = c;
+            }
         }
     }
 

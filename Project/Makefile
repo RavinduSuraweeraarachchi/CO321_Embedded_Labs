@@ -34,8 +34,8 @@ F_CPU = 16000000
 
 
 # Target file name (without extension).
-#TARGET =  morse_decoder
-TARGET =  morse_encoder
+TARGET =  morse_decoder
+#TARGET =  morse_encoder
 
 
 # List C source files here. (C dependencies are automatically generated.)

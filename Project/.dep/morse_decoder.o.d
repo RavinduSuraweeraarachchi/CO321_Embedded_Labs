@@ -1,4 +1,4 @@
-morse_encoder.o: morse_encoder.c /usr/lib/avr/include/avr/io.h \
+morse_decoder.o: morse_decoder.c /usr/lib/avr/include/avr/io.h \
  /usr/lib/avr/include/avr/sfr_defs.h /usr/lib/avr/include/inttypes.h \
  /usr/lib/gcc/avr/7.3.0/include/stdint.h /usr/lib/avr/include/stdint.h \
  /usr/lib/avr/include/avr/iom328p.h /usr/lib/avr/include/avr/portpins.h \

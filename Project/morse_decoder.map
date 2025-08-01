@@ -130,7 +130,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000      0x474
+.text           0x0000000000000000      0x55a
  *(.vectors)
  .vectors       0x0000000000000000       0x68 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
                 0x0000000000000000                __vectors
@@ -239,39 +239,39 @@ END GROUP
  .text          0x000000000000043c        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
                 0x000000000000043c                . = ALIGN (0x2)
  *(.text.*)
- .text.startup  0x000000000000043c       0x34 morse_decoder.o
+ .text.startup  0x000000000000043c      0x11a morse_decoder.o
                 0x000000000000043c                main
  .text.libgcc.mul
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  .text.libgcc.div
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
- .text.libgcc   0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc   0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  .text.libgcc.prologue
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  .text.libgcc.builtins
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  .text.libgcc.fmul
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  .text.libgcc.fixed
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  .text.libgcc.mul
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
  .text.libgcc.div
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
- .text.libgcc   0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc   0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
  .text.libgcc.prologue
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
  .text.libgcc.builtins
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
  .text.libgcc.fmul
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
  .text.libgcc.fixed
-                0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
-                0x0000000000000470                . = ALIGN (0x2)
+                0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+                0x0000000000000556                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000000470        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
-                0x0000000000000470                exit
-                0x0000000000000470                _exit
+ .fini9         0x0000000000000556        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+                0x0000000000000556                exit
+                0x0000000000000556                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -290,11 +290,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000000470        0x4 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+ .fini0         0x0000000000000556        0x4 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000000474                _etext = .
+                0x000000000000055a                _etext = .
 
-.data           0x0000000000800100       0xa8 load address 0x0000000000000474
+.data           0x0000000000800100       0xc6 load address 0x000000000000055a
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
@@ -308,33 +308,33 @@ END GROUP
  *(.rodata)
  *(.rodata*)
  .rodata.str1.1
-                0x0000000000800148       0x5f morse_decoder.o
-                                         0xa8 (size before relaxing)
+                0x0000000000800148       0x7d morse_decoder.o
+                                         0xc6 (size before relaxing)
  *(.gnu.linkonce.r*)
-                0x00000000008001a8                . = ALIGN (0x2)
- *fill*         0x00000000008001a7        0x1 
-                0x00000000008001a8                _edata = .
-                0x00000000008001a8                PROVIDE (__data_end, .)
+                0x00000000008001c6                . = ALIGN (0x2)
+ *fill*         0x00000000008001c5        0x1 
+                0x00000000008001c6                _edata = .
+                0x00000000008001c6                PROVIDE (__data_end, .)
 
-.bss            0x00000000008001a8        0x0
+.bss            0x00000000008001c6        0x0
                 [!provide]                        PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x00000000008001a8        0x0 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
- .bss           0x00000000008001a8        0x0 morse_decoder.o
- .bss           0x00000000008001a8        0x0 lcd.o
- .bss           0x00000000008001a8        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
- .bss           0x00000000008001a8        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
+ .bss           0x00000000008001c6        0x0 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
+ .bss           0x00000000008001c6        0x0 morse_decoder.o
+ .bss           0x00000000008001c6        0x0 lcd.o
+ .bss           0x00000000008001c6        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_exit.o)
+ .bss           0x00000000008001c6        0x0 /usr/lib/gcc/avr/7.3.0/avr5/libgcc.a(_copy_data.o)
  *(.bss*)
  *(COMMON)
                 [!provide]                        PROVIDE (__bss_end, .)
-                0x0000000000000474                __data_load_start = LOADADDR (.data)
-                0x000000000000051c                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x000000000000055a                __data_load_start = LOADADDR (.data)
+                0x0000000000000620                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00000000008001a8        0x0
+.noinit         0x00000000008001c6        0x0
                 [!provide]                        PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                        PROVIDE (__noinit_end, .)
-                0x00000000008001a8                _end = .
+                0x00000000008001c6                _end = .
                 [!provide]                        PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
@@ -410,41 +410,41 @@ END GROUP
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000     0x10fb
+.debug_info     0x0000000000000000     0x1277
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x0000000000000000      0x5f4 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
- .debug_info    0x00000000000005f4      0x394 morse_decoder.o
- .debug_info    0x0000000000000988      0x773 lcd.o
+ .debug_info    0x00000000000005f4      0x510 morse_decoder.o
+ .debug_info    0x0000000000000b04      0x773 lcd.o
 
-.debug_abbrev   0x0000000000000000      0xa8f
+.debug_abbrev   0x0000000000000000      0xa94
  *(.debug_abbrev)
  .debug_abbrev  0x0000000000000000      0x5a2 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
- .debug_abbrev  0x00000000000005a2      0x25c morse_decoder.o
- .debug_abbrev  0x00000000000007fe      0x291 lcd.o
+ .debug_abbrev  0x00000000000005a2      0x261 morse_decoder.o
+ .debug_abbrev  0x0000000000000803      0x291 lcd.o
 
-.debug_line     0x0000000000000000      0x735
+.debug_line     0x0000000000000000      0x830
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x0000000000000000       0x1a /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
- .debug_line    0x000000000000001a      0x2c6 morse_decoder.o
- .debug_line    0x00000000000002e0      0x455 lcd.o
+ .debug_line    0x000000000000001a      0x3c1 morse_decoder.o
+ .debug_line    0x00000000000003db      0x455 lcd.o
 
-.debug_frame    0x0000000000000000      0x230
+.debug_frame    0x0000000000000000      0x244
  *(.debug_frame)
- .debug_frame   0x0000000000000000       0xfc morse_decoder.o
- .debug_frame   0x00000000000000fc      0x134 lcd.o
+ .debug_frame   0x0000000000000000      0x110 morse_decoder.o
+ .debug_frame   0x0000000000000110      0x134 lcd.o
 
-.debug_str      0x0000000000000000      0x51f
+.debug_str      0x0000000000000000      0x540
  *(.debug_str)
  .debug_str     0x0000000000000000      0x208 /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
- .debug_str     0x0000000000000208      0x1f0 morse_decoder.o
-                                        0x235 (size before relaxing)
- .debug_str     0x00000000000003f8      0x127 lcd.o
+ .debug_str     0x0000000000000208      0x237 morse_decoder.o
+                                        0x27c (size before relaxing)
+ .debug_str     0x000000000000043f      0x101 lcd.o
                                         0x281 (size before relaxing)
 
-.debug_loc      0x0000000000000000      0xa30
+.debug_loc      0x0000000000000000      0xb3c
  *(.debug_loc)
- .debug_loc     0x0000000000000000      0x31c morse_decoder.o
- .debug_loc     0x000000000000031c      0x714 lcd.o
+ .debug_loc     0x0000000000000000      0x428 morse_decoder.o
+ .debug_loc     0x0000000000000428      0x714 lcd.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -464,10 +464,10 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x0000000000000000       0x78
+.debug_ranges   0x0000000000000000       0xc0
  *(.debug_ranges)
- .debug_ranges  0x0000000000000000       0x60 morse_decoder.o
- .debug_ranges  0x0000000000000060       0x18 lcd.o
+ .debug_ranges  0x0000000000000000       0xa8 morse_decoder.o
+ .debug_ranges  0x00000000000000a8       0x18 lcd.o
 
 .debug_macro
  *(.debug_macro)
@@ -525,14 +525,18 @@ exit                                              /usr/lib/gcc/avr/7.3.0/avr5/li
                                                   /usr/lib/gcc/avr/7.3.0/../../../avr/lib/avr5/crtatmega328p.o
 get_morse_code                                    morse_decoder.o
 lcd_clrscr                                        lcd.o
+                                                  morse_decoder.o
 lcd_command                                       lcd.o
 lcd_data                                          lcd.o
 lcd_getxy                                         lcd.o
 lcd_gotoxy                                        lcd.o
 lcd_home                                          lcd.o
 lcd_init                                          lcd.o
+                                                  morse_decoder.o
 lcd_putc                                          lcd.o
+                                                  morse_decoder.o
 lcd_puts                                          lcd.o
+                                                  morse_decoder.o
 lcd_puts_p                                        lcd.o
 letter_gap                                        morse_decoder.o
 main                                              morse_decoder.o

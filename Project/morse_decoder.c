@@ -118,9 +118,11 @@ char usart_receive(void)
     return UDR0;
 }
 
+// This is a simple function to send a string over USART
 
 void usart_send_string(char* str)
 {
+    // Loop through each character in the string until we reach the null terminator
     while (*str != '\0')
     {
         usart_send(*str);
@@ -133,7 +135,17 @@ void usart_send_string(char* str)
 *******************************************************************************
 */
 
-const char* morseCodeMap[] = {
+/*
+    We have created a Morse code map to convert characters to Morse code.
+    Each character is represented by a string of dots and dashes.
+    The map is indexed by the position of the character in the alphabet
+        Eg: A is at index 0, B is at index 1, .... Z is at index 25 etc.
+    
+    NOTE:
+    We have used char* because we need to access them using addresses (pointers).
+*/
+const char* morseCodeMap[] = 
+{
     ".-",    // A
     "-...",  // B
     "-.-.",  // C
@@ -172,9 +184,11 @@ const char* morseCodeMap[] = {
     "----."  // 9
 };
 
+// Now we have added a Timer function
+// To be used for delays in the Morse code signaling
 
 /*
-CALCULATIONS:
+TIMER CALCULATIONS:
 
 XTAL = 16 MHz
 i.e. 1 clock cycle = 1 / 16 microseconds
@@ -227,45 +241,106 @@ void delay_timer()
 }
 
 /*
+    Why CTC?
+    CTC (Clear Timer on Compare Match) mode is used 
+    because it allows the timer to reset automatically 
+    when it reaches a specified value (OCR1A).  
+
+*/
+
+/*
 Defining hardware pins and time intervals for Morse code symbols
 
 */
 
+// LED for showing the morse code
 #define LED_DDR  DDRB
 #define LED_PORT PORTB
 #define LED_PIN  PB5 // Arduino Pin 13 (On-board LED)
 
+// Buzzer for signaling Morse code
 #define BUZZER_DDR  DDRB
 #define BUZZER_PORT PORTB
-#define BUZZER_PIN  PB1 // Changed to Arduino Pin 9 (PB1)
+#define BUZZER_PIN  PB1 // Arduino Pin 9 (PB1)
+
+// LED to show end of letter/number
+#define LED_LETTER_PIN PB2 // Arduino Pin 10
+
+// LED to show end of word
+#define LED_WORD_PIN   PB3 // Arduino Pin 11
+
+// LED to show end of sentence
+#define LED_SENT_PIN   PB4 // Arduino Pin 12
 
 // Morse code timing (in milliseconds)
+// Reason for using define:
+// Just by changing DOT_DURATION, we can change the timing of the entire Morse code
 #define DOT_DURATION 200
 #define DASH_DURATION (3 * DOT_DURATION)
 #define SYMBOL_GAP_DURATION DOT_DURATION
 #define LETTER_GAP_DURATION (3 * DOT_DURATION)
 #define WORD_GAP_DURATION (7 * DOT_DURATION)
 
-// Helper function: delay for N x 100ms using delay_timer()
-void delay_100ms_units(uint8_t units) {
-    for (uint8_t i = 0; i < units; i++) {
+// This function is used to delay for a specified number of 100ms units
+// Since our delay timer is set to 100ms
+// we can use this function to create delays of orders of 100ms 
+
+void delay_100ms_units(uint8_t units) 
+{   
+    // Loop through the number of units
+    // Provided as input to the function
+    for (uint8_t i = 0; i < units; i++) 
+    {
         delay_timer();
     }
 }
 
-// Function to signal a single Morse code character (dot/dash sequence)
-void signal_morse(const char* morse_string) {
+/*
+    SIGNAL_MORSE FUNCTION:
+
+    We input a Morse code string (e.g., ".-") and signal it using the LED and buzzer.
+    We loop through each character in the Morse code string.
+    For each character, we turn on the LED and buzzer for the duration specified by the Morse code (dot or dash).
+    After signaling the character, we turn off the LED and buzzer.
+
+*/
+void signal_morse(const char* morse_string) 
+{   
+    // i for iterating through the Morse code string
+    // We assume the string is null-terminated
     int i = 0;
-    while (morse_string[i] != '\0') {
-        // Turn ON LED
+
+    // Loop through each character in the Morse code string
+    // Until we find the null terminator
+    while (morse_string[i] != '\0') 
+    {
+        // Turn ON the Signaling LED
         LED_PORT |= (1 << LED_PIN);
 
-        // Determine ON duration in ms
+        /*
+            Now we need to determine the ON duration based on the character:
+            - For a dot (.), the duration is DOT_DURATION
+            - For a dash (-), the duration is DASH_DURATION
+            as so on.
+
+            on_duration_ms is the duration for which the LED and buzzer will be ON
+        */
         uint16_t on_duration_ms = (morse_string[i] == '.') ? DOT_DURATION : DASH_DURATION;
+
+        /*
+            Now, we need to turn ON the buzzer for the same duration
+            We have introduced elapsed variable to keep track of the elapsed time
+        */
+
         uint16_t elapsed = 0;
-        while (elapsed < on_duration_ms) {
-            // Toggle buzzer pin for 500 Hz (1 ms period: 0.5 ms high, 0.5 ms low)
-            BUZZER_PORT |= (1 << BUZZER_PIN); // High
+
+        // Run the buzzer until elapsed time hasnt reached on_duration_ms
+        while (elapsed < on_duration_ms) 
+        {
+            // Toggle buzzer pin for 500 Hz 
+            // (1 ms period: 0.5 ms high, 0.5 ms low)
+            BUZZER_PORT |= (1 << BUZZER_PIN);
+            
             // Delay 0.5 ms
             for (volatile uint16_t d = 0; d < (F_CPU / 1000 / 8 / 2); d++) { asm volatile ("nop"); }
             BUZZER_PORT &= ~(1 << BUZZER_PIN); // Low
@@ -310,36 +385,85 @@ const char* get_morse_code(char c) {
     }
 }
 
+
 int main(void) {
     // Set LED and buzzer pins as output
-    LED_DDR |= (1 << LED_PIN);
+    LED_DDR |= (1 << LED_PIN) | (1 << LED_LETTER_PIN) | (1 << LED_WORD_PIN) | (1 << LED_SENT_PIN);
     BUZZER_DDR |= (1 << BUZZER_PIN);
 
-    // Ensure LED and buzzer are off
+    // Ensure all LEDs and buzzer are off
     LED_PORT &= ~(1 << LED_PIN);
+    LED_PORT &= ~(1 << LED_LETTER_PIN);
+    LED_PORT &= ~(1 << LED_WORD_PIN);
+    LED_PORT &= ~(1 << LED_SENT_PIN);
     BUZZER_PORT &= ~(1 << BUZZER_PIN);
 
     // Initialize USART
     usart_init();
 
-    // Optional: Initialize LCD if you want to display received chars
-    // lcd_init();
+    // Initialize LCD
+    lcd_init(LCD_DISP_ON);
+    lcd_clrscr();
+    lcd_puts("Morse Decoder");
+    uint8_t lcd_col = 0;
+
+    // Buffer for input
+    #define BUFFER_SIZE 128
+    char buffer[BUFFER_SIZE];
+    uint8_t buf_idx = 0;
 
     while (1) {
         char c = usart_receive();
-        // Echo received character back (optional)
-        usart_send(c);
+        usart_send(c); // Echo
 
-        if (c == ' ') {
-            // Space = word gap
-            word_gap();
-        } else {
-            const char* morse = get_morse_code(c);
-            if (morse != NULL) {
-                signal_morse(morse);
-                letter_gap();
+        // If Enter is pressed, process buffer
+        if (c == '\n' || c == '\r') {
+            buffer[buf_idx] = '\0';
+            uint8_t i = 0;
+            lcd_col = 0;
+            lcd_clrscr();
+            while (buffer[i] != '\0') {
+                if (buffer[i] == ' ') {
+                    // Word finished
+                    LED_PORT |= (1 << LED_WORD_PIN);
+                    word_gap();
+                    LED_PORT &= ~(1 << LED_WORD_PIN);
+                    // Add space to LCD
+                    lcd_putc(' ');
+                    lcd_col++;
+                } else {
+                    const char* morse = get_morse_code(buffer[i]);
+                    if (morse != NULL) {
+                        signal_morse(morse);
+                        // Light up LED_LETTER_PIN briefly after signaling a letter
+                        LED_PORT |= (1 << LED_LETTER_PIN);
+                        delay_100ms_units(2); // 200ms
+                        LED_PORT &= ~(1 << LED_LETTER_PIN);
+                        letter_gap();
+                        // Show Morse code and character on LCD, clear for each character
+                        lcd_clrscr();
+                        const char* morse_str = morse;
+                        for (uint8_t m = 0; morse_str[m] != '\0'; m++) {
+                            lcd_putc(morse_str[m]);
+                        }
+                        lcd_putc(' ');
+                        lcd_putc(buffer[i]);
+                    }
+                }
+                i++;
             }
-            // else: ignore unsupported chars
+            // End of sentence
+            lcd_clrscr();
+            lcd_puts("end of sentence");
+            LED_PORT |= (1 << LED_SENT_PIN);
+            delay_100ms_units(10); // Light up for 1s
+            LED_PORT &= ~(1 << LED_SENT_PIN);
+            buf_idx = 0; // Reset buffer
+        } else {
+            // Buffer printable chars (ignore others)
+            if (buf_idx < BUFFER_SIZE - 1 && (c >= 32 && c <= 126)) {
+                buffer[buf_idx++] = c;
+            }
         }
     }
 
